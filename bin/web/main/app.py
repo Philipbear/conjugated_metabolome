@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 from utils import filter_by_inchikey, add_mirror_plot_urls
 from chem_utils import smiles_to_formula_inchikey, calc_monoisotopic_mass, inchikey_to_common_name, get_structure_image_pubchem
 
@@ -39,12 +40,18 @@ with col2:
     # Load the data
     @st.cache_data
     def load_data():
-        # Load the main parquet dataframe
-        pos_df = pd.read_parquet("pos_refined.parquet")
-        neg_df = pd.read_parquet("neg_refined.parquet")
+        # Get the directory of the current script
+        current_dir = os.path.dirname(os.path.abspath(__file__))
         
-        # Load the MS2 database dataframe
-        ms2db_df = pd.read_parquet("ms2db.parquet")
+        # Build paths to your data files
+        pos_path = os.path.join(current_dir, "pos_refined.parquet")
+        neg_path = os.path.join(current_dir, "neg_refined.parquet")
+        ms2db_path = os.path.join(current_dir, "ms2db.parquet")
+        
+        # Load the parquet files
+        pos_df = pd.read_parquet(pos_path)
+        neg_df = pd.read_parquet(neg_path)
+        ms2db_df = pd.read_parquet(ms2db_path)
         
         return pos_df, neg_df, ms2db_df
 
