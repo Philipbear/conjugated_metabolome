@@ -1,7 +1,5 @@
 import pandas as pd
 import urllib.parse
-from chem_utils import inchikey_to_common_name
-from collections import defaultdict
 
 '''
 # ref_1_id, ref_2_id, delta_mass, count, dataset, file_path, file_scan, full_file_path
@@ -41,7 +39,7 @@ def filter_by_inchikey(df, ms2db_df, inchikey, min_count):
     df_filtered = pd.concat([df_filtered1, df_filtered2], ignore_index=True)
     
     if df_filtered.empty:
-        return None
+        return pd.DataFrame()
     
     # fill in conjugate names
     inchikey_to_name = ms2db_df.set_index('inchikey_14')['name'].to_dict()
@@ -55,7 +53,7 @@ def filter_by_inchikey(df, ms2db_df, inchikey, min_count):
     def _get_qry_usi(row):
         return 'mzspec:' + row['dataset'] + ':' + row['full_file_path'] + ':scan:' + row['file_scan']
     
-    def _get_usi1(row, ref_col='ref_1'):
+    def _get_ref_usi(row, ref_col='ref_1'):
         if pd.isna(row[f'{ref_col}_id']):
             return None
         if row[f'{ref_col}_id'].startswith('CCMSLIB000'):
@@ -68,14 +66,14 @@ def filter_by_inchikey(df, ms2db_df, inchikey, min_count):
     df_filtered['qry_usi'] = df_filtered.apply(lambda x: _get_qry_usi(x), axis=1)
     df_filtered = df_filtered.drop(columns=['dataset', 'file_scan', 'full_file_path'])
     
-    # dict from db_id to db name
+    # Add names for ref_1 and ref_2
     db_dict = ms2db_df.set_index('db_id')['db'].to_dict()
     df_filtered['ref_1_db'] = df_filtered['ref_1_id'].apply(lambda x: db_dict.get(x, ''))
     df_filtered['ref_2_db'] = df_filtered['ref_2_id'].apply(lambda x: db_dict.get(x, ''))
     del db_dict
     
-    df_filtered['usi1'] = df_filtered.apply(lambda x: _get_usi1(x, 'ref_1'), axis=1)
-    df_filtered['usi2'] = df_filtered.apply(lambda x: _get_usi1(x, 'ref_2'), axis=1)
+    df_filtered['usi1'] = df_filtered.apply(lambda x: _get_ref_usi(x, 'ref_1'), axis=1)
+    df_filtered['usi2'] = df_filtered.apply(lambda x: _get_ref_usi(x, 'ref_2'), axis=1)
     df_filtered = df_filtered.drop(columns=['ref_1_id', 'ref_2_id', 'ref_1_db', 'ref_2_db'])
     
     # sort by count

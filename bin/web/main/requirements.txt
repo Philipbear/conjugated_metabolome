@@ -4,3 +4,4 @@ rdkit>=2023.3.1
 pubchempy>=1.0.4
 urllib3>=2.0.0
 molmass>=2025.4.14
+requests>=2.31.0

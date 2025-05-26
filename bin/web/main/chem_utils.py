@@ -4,6 +4,7 @@ from molmass import Formula
 import re
 import pubchempy as pcp
 import urllib.parse
+import requests
 
 
 def inchikey_to_common_name(inchikey):
@@ -129,5 +130,38 @@ def get_structure_image_gnps2(smiles):
     return image_url
 
 
+def get_compound_description_pubchem(smiles):
+    """
+    Get compound description text from PubChem using SMILES string.
+    Returns a simple string with all descriptions concatenated.
+    """
+    try:
+        # URL encode the SMILES string
+        encoded_smiles = urllib.parse.quote(smiles)
+        
+        # PubChem REST API endpoint for compound description
+        description_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{encoded_smiles}/description/JSON"
+        
+        response = requests.get(description_url)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if 'InformationList' not in data or not data['InformationList']['Information']:
+            return None
+        
+        # Collect all descriptions
+        descriptions = []
+        for info in data['InformationList']['Information']:
+            if 'Description' in info:
+                descriptions.append(info['Description'])
+        
+        # Return all descriptions joined together
+        return ' '.join(descriptions) if descriptions else None
+        
+    except:
+        return None
+    
+    
 if __name__ == "__main__":
     print(calc_monoisotopic_mass("C5H5N"))
