@@ -41,17 +41,6 @@ with col2:
     @st.cache_data
     def load_data():
         try:
-            # Try different path strategies and report which one works
-            
-            # Strategy 1: Current directory
-            if os.path.exists("pos_refined.parquet"):
-                st.info("✅ Loading files from current directory")
-                pos_df = pd.read_parquet("pos_refined.parquet")
-                neg_df = pd.read_parquet("neg_refined.parquet")
-                ms2db_df = pd.read_parquet("ms2db.parquet")
-                return pos_df, neg_df, ms2db_df
-            
-            # Strategy 2: Script directory
             script_dir = os.path.dirname(os.path.abspath(__file__))
             pos_path = os.path.join(script_dir, "pos_refined.parquet")
             if os.path.exists(pos_path):
@@ -60,29 +49,9 @@ with col2:
                 neg_df = pd.read_parquet(os.path.join(script_dir, "neg_refined.parquet"))
                 ms2db_df = pd.read_parquet(os.path.join(script_dir, "ms2db.parquet"))
                 return pos_df, neg_df, ms2db_df
-            
-            # Strategy 3: Look in parent directories
-            for i in range(3):  # Check up to 3 levels up
-                test_dir = script_dir
-                for _ in range(i):
-                    test_dir = os.path.dirname(test_dir)
-                
-                pos_path = os.path.join(test_dir, "pos_refined.parquet")
-                if os.path.exists(pos_path):
-                    st.info(f"✅ Loading files from parent directory (level {i}): {test_dir}")
-                    pos_df = pd.read_parquet(pos_path)
-                    neg_df = pd.read_parquet(os.path.join(test_dir, "neg_refined.parquet"))
-                    ms2db_df = pd.read_parquet(os.path.join(test_dir, "ms2db.parquet"))
-                    return pos_df, neg_df, ms2db_df
-            
-            # If we get here, we couldn't find the files
-            st.info("❌ Could not locate parquet files. Please check file locations.")
-            st.info(f"Script directory: {script_dir}")
-            st.info(f"Current working directory: {os.getcwd()}")
-            st.info(f"Files in script directory: {os.listdir(script_dir) if os.path.exists(script_dir) else 'Directory not found'}")
-            
-            # Return empty dataframes as fallback
-            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+            else:
+                st.error(f"❌ Data files not found in script directory: {script_dir}. ")
+                return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
             
         except Exception as e:
             st.info(f"❌ Error loading data: {str(e)}")
