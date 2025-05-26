@@ -40,20 +40,50 @@ with col2:
     # Load the data
     @st.cache_data
     def load_data():
-        # Get the directory of the current script
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        
-        # Build paths to your data files
-        pos_path = os.path.join(current_dir, "pos_refined.parquet")
-        neg_path = os.path.join(current_dir, "neg_refined.parquet")
-        ms2db_path = os.path.join(current_dir, "ms2db.parquet")
-        
-        # Load the parquet files
-        pos_df = pd.read_parquet(pos_path)
-        neg_df = pd.read_parquet(neg_path)
-        ms2db_df = pd.read_parquet(ms2db_path)
-        
-        return pos_df, neg_df, ms2db_df
+        try:
+            # Try different path strategies
+            
+            # Strategy 1: Current directory
+            if os.path.exists("pos_refined.parquet"):
+                pos_df = pd.read_parquet("pos_refined.parquet")
+                neg_df = pd.read_parquet("neg_refined.parquet")
+                ms2db_df = pd.read_parquet("ms2db.parquet")
+                return pos_df, neg_df, ms2db_df
+            
+            # Strategy 2: Script directory
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            pos_path = os.path.join(script_dir, "pos_refined.parquet")
+            if os.path.exists(pos_path):
+                pos_df = pd.read_parquet(pos_path)
+                neg_df = pd.read_parquet(os.path.join(script_dir, "neg_refined.parquet"))
+                ms2db_df = pd.read_parquet(os.path.join(script_dir, "ms2db.parquet"))
+                return pos_df, neg_df, ms2db_df
+            
+            # Strategy 3: Look in parent directories
+            for i in range(3):  # Check up to 3 levels up
+                test_dir = script_dir
+                for _ in range(i):
+                    test_dir = os.path.dirname(test_dir)
+                
+                pos_path = os.path.join(test_dir, "pos_refined.parquet")
+                if os.path.exists(pos_path):
+                    pos_df = pd.read_parquet(pos_path)
+                    neg_df = pd.read_parquet(os.path.join(test_dir, "neg_refined.parquet"))
+                    ms2db_df = pd.read_parquet(os.path.join(test_dir, "ms2db.parquet"))
+                    return pos_df, neg_df, ms2db_df
+            
+            # If we get here, we couldn't find the files
+            st.error("Could not locate parquet files. Please check file locations.")
+            st.write(f"Script directory: {script_dir}")
+            st.write(f"Current working directory: {os.getcwd()}")
+            st.write(f"Files in script directory: {os.listdir(script_dir) if os.path.exists(script_dir) else 'Directory not found'}")
+            
+            # Return empty dataframes as fallback
+            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+            
+        except Exception as e:
+            st.error(f"Error loading data: {str(e)}")
+            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
     # Load the data
     pos_df, neg_df, ms2db_df = load_data()
