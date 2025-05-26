@@ -12,7 +12,7 @@ import time
 from multiprocessing import Pool, cpu_count
 
 
-def main(pkl_folder='/home/shipei/projects/revcos/search/results/pos',
+def main(pkl_folder='/home/shipei/projects/revcos/search/results/pos_recheck',
          out_folder='/home/shipei/projects/revcos/search/results/pos_stitched',
          mode='pos', n_jobs=None):
 
@@ -147,9 +147,9 @@ def process_file(pkl_path, out_folder, mode, db_id_to_mass, db_id_to_inchi14):
         # Filter ref_2 results before processing
         if 'score_arr' in spec['delta_result']:
             # Create mask for filtering based on score, peak, and usage thresholds
-            mask = (spec['delta_result']['score_arr'] >= 0.7) & \
+            mask = (spec['delta_result']['score_arr'] >= 0.6) & \
                    (spec['delta_result']['peak_arr'] >= 3) & \
-                   (spec['delta_result']['usage_arr'] >= 0.20)
+                   (spec['delta_result']['usage_arr'] >= 0.10)
 
             filtered_indices = np.where(mask)[0]
 
@@ -194,7 +194,8 @@ def process_file(pkl_path, out_folder, mode, db_id_to_mass, db_id_to_inchi14):
     results_df['ref_1_id'] = results_df['ref_1_id'].astype('str')
     results_df['ref_1_inchi'] = results_df['ref_1_id'].map(db_id_to_inchi14)
 
-    float_columns = ['ref_1_score', 'ref_2_score', 'ref_1_usage', 'ref_2_usage', 'total_usage', 'ref_1_prec_int']
+    float_columns = ['ref_1_score', 'ref_2_score', 'ref_1_usage', 'ref_2_usage', 'total_usage', 'ref_1_prec_frag_int', 
+                     'ref_1_prec_frag_water_loss_int', 'ref_1_prec_nl_int', 'ref_1_prec_nl_water_loss_int']
     results_df[float_columns] = results_df[float_columns].astype('float32')
 
     # Sort by qry_id, ref_1_inchikey, total_usage, ref_1_score, ref_2_score
@@ -221,7 +222,10 @@ def gen_from_empty_delta_results(spec):
             'ref_1_score': spec['score_arr'][idx],
             'ref_1_peak': spec['peak_arr'][idx],
             'ref_1_usage': spec['usage_arr'][idx],
-            'ref_1_prec_int': spec['ref_prec_int_arr'][idx],
+            'ref_1_prec_frag_int': spec['ref_prec_int_frag_arr'][idx],
+            'ref_1_prec_frag_water_loss_int': spec['ref_prec_int_frag_water_loss_arr'][idx],
+            'ref_1_prec_nl_int': spec['ref_prec_int_nl_arr'][idx],
+            'ref_1_prec_nl_water_loss_int': spec['ref_prec_int_nl_water_loss_arr'][idx],
             'ref_2_id': None,
             'ref_2_score': 0,
             'ref_2_peak': 0,
@@ -260,7 +264,10 @@ def gen_from_delta_results(spec, q_mass, db_id_to_mass, ms1_tol_ppm):
                 'ref_1_score': spec['score_arr'][idx],
                 'ref_1_peak': spec['peak_arr'][idx],
                 'ref_1_usage': spec['usage_arr'][idx],
-                'ref_1_prec_int': spec['ref_prec_int_arr'][idx],
+                'ref_1_prec_frag_int': spec['ref_prec_int_frag_arr'][idx],
+                'ref_1_prec_frag_water_loss_int': spec['ref_prec_int_frag_water_loss_arr'][idx],
+                'ref_1_prec_nl_int': spec['ref_prec_int_nl_arr'][idx],
+                'ref_1_prec_nl_water_loss_int': spec['ref_prec_int_nl_water_loss_arr'][idx],
                 'ref_2_id': None,
                 'ref_2_score': 0,
                 'ref_2_peak': 0,
@@ -276,7 +283,10 @@ def gen_from_delta_results(spec, q_mass, db_id_to_mass, ms1_tol_ppm):
                     'ref_1_score': spec['score_arr'][idx],
                     'ref_1_peak': spec['peak_arr'][idx],
                     'ref_1_usage': spec['usage_arr'][idx],
-                    'ref_1_prec_int': spec['ref_prec_int_arr'][idx],
+                    'ref_1_prec_frag_int': spec['ref_prec_int_frag_arr'][idx],
+                    'ref_1_prec_frag_water_loss_int': spec['ref_prec_int_frag_water_loss_arr'][idx],
+                    'ref_1_prec_nl_int': spec['ref_prec_int_nl_arr'][idx],
+                    'ref_1_prec_nl_water_loss_int': spec['ref_prec_int_nl_water_loss_arr'][idx],
                     'ref_2_id': spec['delta_result']['ref_id_arr'][idx2],
                     'ref_2_score': spec['delta_result']['score_arr'][idx2],
                     'ref_2_peak': spec['delta_result']['peak_arr'][idx2],
@@ -291,12 +301,12 @@ if __name__ == "__main__":
     min_total_usage = 0.80
 
     start_time = time.time()
-    main('/home/shipei/projects/revcos/search/results/pos',
+    main('/home/shipei/projects/revcos/search/results/pos_recheck',
          '/home/shipei/projects/revcos/search/results/pos_stitched', 'pos', None)
     print(f"Pos total time: {(time.time() - start_time) / 60} minutes")
 
     start_time = time.time()
-    main('/home/shipei/projects/revcos/search/results/neg',
+    main('/home/shipei/projects/revcos/search/results/neg_recheck',
          '/home/shipei/projects/revcos/search/results/neg_stitched', 'neg', None)
     print(f"Neg total time: {(time.time() - start_time) / 60} minutes")
 

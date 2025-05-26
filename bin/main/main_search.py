@@ -342,11 +342,11 @@ if __name__ == '__main__':
 
     # Delta search parameters
     parser.add_argument('--d_score', '-dsc', type=float, help='Delta score cutoff',
-                        default=0.50)  # use 0.70 in later refinement (main_stitch.py)
+                        default=0.50)  # use 0.60 in later refinement (main_stitch.py)
     parser.add_argument('--d_peak', '-dp', type=int, help='Delta minimum matched peaks',
                         default=2)  # use 3 in later refinement (main_stitch.py)
     parser.add_argument('--d_usage', '-du', type=float, help='Delta minimum spectral usage',
-                        default=0.10)  # use 0.20 in later refinement (main_stitch.py)
+                        default=0.10)  # use 0.10 in later refinement (main_stitch.py)
 
     # General parameters
     parser.add_argument('--n_jobs', '-j', type=int, help='Number of parallel processes',

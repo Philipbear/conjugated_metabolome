@@ -1001,3 +1001,5 @@ if __name__ == "__main__":
     # score_arr, matched_peak_arr, spec_usage_arr = search_result['identity_search']
 
     print(search_result)
+    
+    print(search_eng[0])

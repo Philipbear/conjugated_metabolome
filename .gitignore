@@ -179,3 +179,9 @@ cython_debug/
 *.png
 
 /bin/main/others/
+/bin/web/prepare/
+/bin/revcos_matchms/
+play/
+identification/
+clustering/
+db/
