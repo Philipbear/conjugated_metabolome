@@ -176,3 +176,6 @@ cython_debug/
 *.svg
 *.pptx
 *.db
+*.png
+
+/bin/main/others/

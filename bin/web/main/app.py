@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from utils import filter_by_inchikey, add_mirror_plot_urls
 from chem_utils import smiles_to_formula_inchikey, calc_monoisotopic_mass, inchikey_to_common_name, get_structure_image_pubchem
-import os
+
 
 st.set_page_config(page_title="Conjugated Metabolome Explorer", layout="wide")
 
