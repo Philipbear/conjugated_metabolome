@@ -178,10 +178,14 @@ cython_debug/
 *.db
 *.png
 
+.vscode/
+analysis/
 /bin/main/others/
 /bin/web/prepare/
 /bin/revcos_matchms/
 play/
+fig/
+overall_analysis/
 identification/
 clustering/
 db/
