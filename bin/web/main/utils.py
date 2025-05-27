@@ -76,8 +76,8 @@ def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_
     def _get_ref_usi(row, ref_col='ref_1'):
         if pd.isna(row[f'{ref_col}_id']):
             return None
-        if row[f'{ref_col}_id'].startswith('CCMSLIB000'):
-            return 'mzspec:GNPS:GNPS-LIBRARY:accession:' + row[f'{ref_col}_id']
+        if row[f'{ref_col}_db'] == 'gnps':
+            return 'mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB000' + row[f'{ref_col}_id']
         elif row[f'{ref_col}_db'] == 'mona':
             return 'mzspec:MASSBANK::accession:' + row[f'{ref_col}_id']
         else:
