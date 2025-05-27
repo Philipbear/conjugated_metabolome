@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from utils import filter_search_results, add_mirror_plot_urls
+from utils import filter_search_results, prepare_delta_mass_plot, add_mirror_plot_urls
 from chem_utils import smiles_to_formula_inchikey, calc_monoisotopic_mass, inchikey_to_common_name, get_structure_image_pubchem, get_structure_image_gnps2, get_compound_description_pubchem
 
 
@@ -131,7 +131,7 @@ with col2:
                     st.subheader("Compound Information")
                     
                     # Results section with columns for info and structure
-                    info_col, structure_col, description_col = st.columns([3, 1, 3])
+                    _, structure_col, _, info_col, _, description_col = st.columns([1, 3, 1, 7, 1, 6])
                     
                     with structure_col:
                         common_names = inchikey_to_common_name(inchikey)
@@ -141,12 +141,12 @@ with col2:
                         image_url = get_structure_image_gnps2(smiles_input)
                         st.image(image_url, caption=image_caption, use_container_width=True)
                     
-                    with info_col:                        
-                        # Use st.code to display SMILES as plain text without Markdown interpretation
-                        st.markdown(f"**SMILES:**\n```\n{smiles_input}\n```")
+                    with info_col:  
                         if common_names:
                             names_str = ', '.join(common_names[:3])
                             st.markdown(f"**Common names:** {names_str}")
+                        # Use st.code to display SMILES as plain text without Markdown interpretation
+                        st.markdown(f"**SMILES:**\n```\n{smiles_input}\n```")
                         st.markdown(f"**Formula:** {formula}")
                         st.markdown(f"**InChIKey:** {inchikey}")
                         mono_mass = calc_monoisotopic_mass(formula)                
@@ -188,12 +188,10 @@ with col2:
                     
                     # Add a bar chart showing the frequency of delta masses
                     if len(df_filtered) > 1:  # Only show chart if there are multiple results
-                        st.subheader("Distribution of Conjugate Delta Masses")
+                        st.subheader("Distribution of Conjugate Delta Masses")                       
                         
-                        # Group by delta_mass and sum the counts
-                        delta_mass_counts = df_filtered.groupby(['Conjugate delta mass', 'Ion polarity'])['Count'].sum().reset_index()
-                        delta_mass_counts['Ion polarity'] = delta_mass_counts['Ion polarity'].apply(lambda x: '#809bce' if x == '+' else '#eac4d5')
-                        
+                        delta_mass_counts = prepare_delta_mass_plot(df_filtered)
+                                                
                         # Create a column with specific width to control the chart size
                         chart_col1, chart_col2, chart_col3 = st.columns([1, 10, 1])
                         
@@ -204,7 +202,7 @@ with col2:
                                 x='Conjugate delta mass',
                                 y='Count',
                                 size='Count',
-                                color='#809bce',
+                                color='Ion polarity',
                                 use_container_width=True
                             )
                     
@@ -218,7 +216,7 @@ with col2:
                     # Display results
                     st.subheader(f"Result Table")
                     
-                    table_col1, table_col2, table_col3 = st.columns([1, 10, 1])
+                    table_col1, table_col2, table_col3 = st.columns([1, 12, 1])
                     with table_col2:
                         # Display the dataframe with clickable links
                         st.dataframe(

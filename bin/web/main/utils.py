@@ -45,7 +45,7 @@ def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_
     if 'delta' in match_filter_ls:
         target_mass = round(mono_mass - 18.0106, 2)
         # Filter by delta mass
-        df_filtered3 = df[(df['delta_mass'] == target_mass) & (df['count'] >= min_count)].reset_index(drop=True)
+        df_filtered3 = df[(abs(df['delta_mass'] - target_mass) <= 0.01)& (df['count'] >= min_count)].reset_index(drop=True)
         if not df_filtered3.empty:
             df_filtered3['Match type'] = 'delta'
             
@@ -113,6 +113,60 @@ def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_
     df_filtered = df_filtered.sort_values(by='count', ascending=False).reset_index(drop=True)
     
     return df_filtered
+
+
+def prepare_delta_mass_plot(df_filtered):
+    """
+    Efficiently prepare data for delta mass distribution plot.
+    Groups data by delta mass and ion polarity, combining entries that appear in both modes.
+    """
+    # Group by delta mass and ion polarity, summing the counts
+    delta_mass_counts = df_filtered.groupby(['Conjugate delta mass', 'Ion polarity'], as_index=False)['Count'].sum()
+    
+    # Split by ion polarity
+    pos_data = delta_mass_counts[delta_mass_counts['Ion polarity'] == '+']
+    neg_data = delta_mass_counts[delta_mass_counts['Ion polarity'] == '-']
+    
+    # Get unique delta masses for each polarity
+    pos_deltas = set(pos_data['Conjugate delta mass'])
+    neg_deltas = set(neg_data['Conjugate delta mass'])
+    
+    # Find delta masses that appear in both polarities
+    common_deltas = pos_deltas.intersection(neg_deltas)
+    
+    # For delta masses in both polarities, create a single 'both' entry
+    if common_deltas:
+        # Create a list to hold our processed data
+        result_rows = []
+        
+        # Process entries unique to positive mode
+        unique_pos = pos_data[~pos_data['Conjugate delta mass'].isin(common_deltas)]
+        result_rows.extend(unique_pos.to_dict('records'))
+        
+        # Process entries unique to negative mode
+        unique_neg = neg_data[~neg_data['Conjugate delta mass'].isin(common_deltas)]
+        result_rows.extend(unique_neg.to_dict('records'))
+        
+        # Process common entries - combine into 'both' entries using groupby
+        # First, filter the original dataframe to only include rows with common delta masses
+        common_data = delta_mass_counts[delta_mass_counts['Conjugate delta mass'].isin(common_deltas)]
+        
+        # Group by delta mass and sum the counts
+        combined_counts = common_data.groupby('Conjugate delta mass', as_index=False)['Count'].sum()
+        
+        # Add the 'both' polarity to each row
+        combined_counts['Ion polarity'] = 'both'
+        
+        # Add the combined rows to our result
+        result_rows.extend(combined_counts.to_dict('records'))
+        
+        # Create a new DataFrame from the processed rows
+        delta_mass_counts = pd.DataFrame(result_rows)
+    
+    # Sort by delta mass for consistent display
+    delta_mass_counts = delta_mass_counts.sort_values('Conjugate delta mass')
+    
+    return delta_mass_counts
 
 
 def add_mirror_plot_urls(df):
