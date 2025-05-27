@@ -23,9 +23,9 @@ def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_
             del ms2db_filtered
         
             df_filtered1 = df[(df['ref_1_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
-            df_filtered1['Match type'] = 'Spectral match (Ref 1)'
+            df_filtered1['Match type'] = 'spec (ref 1)'
             df_filtered2 = df[(df['ref_2_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
-            df_filtered2['Match type'] = 'Spectral match (Ref 2)'
+            df_filtered2['Match type'] = 'spec (ref 2)'
             
             
             if not df_filtered1.empty:
@@ -47,11 +47,17 @@ def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_
         # Filter by delta mass
         df_filtered3 = df[(df['delta_mass'] == target_mass) & (df['count'] >= min_count)].reset_index(drop=True)
         if not df_filtered3.empty:
-            df_filtered3['Match type'] = 'Delta mass'
+            df_filtered3['Match type'] = 'delta'
+            
             # Add conjugate inchikey
             df_filtered3['conjugate_inchikey'] = df_filtered3['ref_1_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
             del dbid_to_inchi_dict
-            # Add delta mass results
+            
+            db_to_mass_dict = ms2db_df.set_index('db_id')['monoisotopic_mass'].to_dict()
+            df_filtered3['delta_mass'] = df_filtered3['ref_1_id'].apply(lambda x: round(db_to_mass_dict.get(x, 0) - 18.0106, 2))
+            del db_to_mass_dict
+            
+            # Add results
             result_dfs.append(df_filtered3)
     
     if not result_dfs:
@@ -60,6 +66,10 @@ def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_
     # Concatenate the filtered DataFrames
     df_filtered = pd.concat(result_dfs, ignore_index=True)
     del result_dfs
+    
+    df_filtered['Annotation type'] = df_filtered['ref_2_id'].apply(
+        lambda x: 'spec_spec' if pd.notna(x) else 'spec_delta'
+    )
     
     # fill in conjugate names
     inchikey_to_name = ms2db_df.set_index('inchikey_14')['name'].to_dict()
@@ -71,7 +81,10 @@ def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_
     del inchikey_to_name
     
     def _get_qry_usi(row):
-        return 'mzspec:' + row['dataset'] + ':' + row['full_file_path'] + ':scan:' + row['file_scan']
+        try:
+            return 'mzspec:' + row['dataset'] + ':' + row['full_file_path'] + ':scan:' + row['file_scan']
+        except:
+            return None
     
     def _get_ref_usi(row, ref_col='ref_1'):
         if pd.isna(row[f'{ref_col}_id']):
@@ -139,7 +152,7 @@ def gen_mirror_plot_url(usi1, usi2):
     str : URL for the mirror plot
     """
     
-    if usi2 is None:
+    if usi1 is None or usi2 is None:
         return None
 
     # Create the base URL

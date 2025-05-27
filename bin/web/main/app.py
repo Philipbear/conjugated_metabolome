@@ -67,6 +67,8 @@ with col2:
     # Add SMILES input in the first column
     with input_col1:
         smiles_input = st.text_input("Enter a SMILES string:", value=st.session_state.demo_smiles)
+        # strip
+        smiles_input = smiles_input.strip()
 
     # Add filter dropdown in the third column
     with input_col2:
@@ -86,7 +88,7 @@ with col2:
     
     # Add min_count input in the second column
     with input_col3:
-        min_count = st.number_input("Min frequency:", min_value=1, max_value=100, value=3, step=1,
+        min_count = st.number_input("Min frequency:", min_value=1, max_value=100, value=1, step=1,
                                     help="Minimum frequency of a conjugation in public LC-MS/MS datasets to be included in the results.",
                                     format="%d")
         
@@ -181,16 +183,16 @@ with col2:
                     # Rename columns for clarity
                     df_filtered = df_filtered.rename(columns={
                         'count': 'Count',
-                        'delta_mass': 'Delta mass'
+                        'delta_mass': 'Conjugate delta mass'
                     })
                     
                     # Add a bar chart showing the frequency of delta masses
                     if len(df_filtered) > 1:  # Only show chart if there are multiple results
-                        st.subheader("Distribution of Delta Masses")
+                        st.subheader("Distribution of Conjugate Delta Masses")
                         
                         # Group by delta_mass and sum the counts
-                        delta_mass_counts = df_filtered.groupby(['Delta mass', 'Ion polarity'])['Count'].sum().reset_index()
-                        # delta_mass_counts['Ion polarity'] = delta_mass_counts['Ion polarity'].apply(lambda x: '#809bce' if x == '+' else '#eac4d5')
+                        delta_mass_counts = df_filtered.groupby(['Conjugate delta mass', 'Ion polarity'])['Count'].sum().reset_index()
+                        delta_mass_counts['Ion polarity'] = delta_mass_counts['Ion polarity'].apply(lambda x: '#809bce' if x == '+' else '#eac4d5')
                         
                         # Create a column with specific width to control the chart size
                         chart_col1, chart_col2, chart_col3 = st.columns([1, 10, 1])
@@ -199,10 +201,10 @@ with col2:
                             # Create the bar chart in the middle column
                             chart = st.scatter_chart(
                                 data=delta_mass_counts,
-                                x='Delta mass',
+                                x='Conjugate delta mass',
                                 y='Count',
                                 size='Count',
-                                color='Ion polarity',
+                                color='#809bce',
                                 use_container_width=True
                             )
                     
@@ -210,39 +212,55 @@ with col2:
                     df_filtered = add_mirror_plot_urls(df_filtered)
                     
                     # Select columns to display
-                    df_filtered = df_filtered[['Ion polarity', 'Count', 'Delta mass', 'Conjugate name', 
+                    df_filtered = df_filtered[['Ion polarity', 'Annotation type', 'Count', 'Conjugate delta mass', 'Conjugate name', 
                                                'Mirror plot (Ref 1)', 'Mirror plot (Ref 2)', 'Match type']]
                     
                     # Display results
                     st.subheader(f"Result Table")
-                    # Display the dataframe with clickable links
-                    st.dataframe(
-                        df_filtered,
-                        column_config={
-                            "Mirror plot (Ref 1)": st.column_config.LinkColumn(
-                                "Mirror plot (Ref 1)",
-                                width="medium",
-                                help="Click to view mirror plot between query MS/MS and reference 1",
-                                display_text="View",
-                                required=False
-                            ),
-                            "Mirror plot (Ref 2)": st.column_config.LinkColumn(
-                                "Mirror plot (Ref 2)",
-                                width="medium",
-                                help="Click to view mirror plot between query MS/MS and reference 2",
-                                display_text="View",
-                                required=False
-                            ),
-                        },
-                        hide_index=True,
-                    )
+                    
+                    table_col1, table_col2, table_col3 = st.columns([1, 10, 1])
+                    with table_col2:
+                        # Display the dataframe with clickable links
+                        st.dataframe(
+                            df_filtered,
+                            column_config={
+                                "Mirror plot (Ref 1)": st.column_config.LinkColumn(
+                                    "Mirror plot (Ref 1)",
+                                    width="medium",
+                                    help="Click to view mirror plot between query MS/MS and reference 1",
+                                    display_text="View",
+                                    required=False
+                                ),
+                                "Mirror plot (Ref 2)": st.column_config.LinkColumn(
+                                    "Mirror plot (Ref 2)",
+                                    width="medium",
+                                    help="Click to view mirror plot between query MS/MS and reference 2",
+                                    display_text="View",
+                                    required=False
+                                ),
+                            },
+                            hide_index=True,
+                        )
                     
     # Add final notes and copyright at the bottom of the page
     st.markdown("---")
     st.markdown("""
     ### Notes
     1. All search results are based on 2D chemical structure.
-    2. Reference spectra from NIST20 are only commercially available and do not have valid USIs. In spectral matches where NIST20 spectra are involved, only the query MS/MS will be shown in the mirror plot viewer.
-    
+    2. Reference spectra from [MassBank](https://github.com/MassBank/MassBank-data/releases) and NIST20 (commercially available) do not have USIs. In spectral matches where MassBank or NIST20 spectra are involved, only the query MS/MS will be shown in the mirror plot viewer.
+    3. Column descriptions:
+    - **Ion polarity**: The ion polarity of the query MS/MS.
+    - **Annotation type**: how the query MS/MS is annotated in the search results.
+        - spec_spec: Query MS/MS is explained as a conjugate of two component molecules, and both components are explained by reference MS/MS via spectral matching.
+        - spec_delta: Query MS/MS is explained as a conjugate of a reference MS/MS via spectral matching and a delta mass (one component unannotated).
+    - **Count**: The frequency of the conjugation in public LC-MS/MS datasets.
+    - **Conjugate delta mass**: The mass of the conjugate component.
+    - **Conjugate name**: The name of the conjugate component, if available.
+    - **Mirror plot (Ref 1)**: Link to the mirror plot between the query MS/MS and reference 1.
+    - **Mirror plot (Ref 2)**: Link to the mirror plot between the query MS/MS and reference 2.
+    - **Match type**: how the target compound is found in the search results.
+        - spec: Spectral match with a reference MS/MS.
+        - delta: Delta mass match.
+        
     © All rights reserved, Shipei Xing 2025
     """)
