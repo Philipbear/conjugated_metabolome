@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
-from utils import filter_by_inchikey, add_mirror_plot_urls
-from chem_utils import smiles_to_formula_inchikey, calc_monoisotopic_mass, inchikey_to_common_name, get_structure_image_pubchem, get_compound_description_pubchem
+from utils import filter_search_results, add_mirror_plot_urls
+from chem_utils import smiles_to_formula_inchikey, calc_monoisotopic_mass, inchikey_to_common_name, get_structure_image_pubchem, get_structure_image_gnps2, get_compound_description_pubchem
 
 
 st.set_page_config(page_title="Conjugated Metabolome Explorer", layout="wide")
@@ -16,10 +16,7 @@ with st.sidebar:
     ### About
     This app allows you to explore potential metabolite conjugations using SMILES strings.
     
-        
-    ### Note
     - This webpage does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://doi.org/10.1101/2025.01.01.123456) and [Zenodo repository](https://zenodo.org/record/1234567).
-    - If the reference spectra are not from GNPS or MassBank, only the query MS/MS will be shown in the mirror plot viewer.
     - Due to memory usage, for each conjugation, we only reserve one representative query MS/MS and its corresponding reference MS/MS spectra in the result table.
         
     ### Citation
@@ -34,28 +31,24 @@ with st.sidebar:
     """)
 
 # Create a layout
-col1, col2, col3 = st.columns([1, 7, 1])
+col1, col2, col3 = st.columns([1, 8, 1])
 # Main panel with search functionality
 with col2:
     # Load the data
     @st.cache_data
     def load_data():
-        try:
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            pos_path = os.path.join(script_dir, "pos_refined.parquet")
-            if os.path.exists(pos_path):
-                # st.info(f"✅ Loading files from script directory: {script_dir}")
-                pos_df = pd.read_parquet(pos_path)
-                neg_df = pd.read_parquet(os.path.join(script_dir, "neg_refined.parquet"))
-                ms2db_df = pd.read_parquet(os.path.join(script_dir, "ms2db.parquet"))
-                return pos_df, neg_df, ms2db_df
-            else:
-                st.error(f"❌ Data files not found in script directory: {script_dir}. ")
-                return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-            
-        except Exception as e:
-            st.info(f"❌ Error loading data: {str(e)}")
-            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        pos_path = os.path.join(script_dir, "pos_refined.parquet")
+        if os.path.exists(pos_path):
+            # st.info(f"✅ Loading files from script directory: {script_dir}")
+            pos_df = pd.read_parquet(pos_path)
+            pos_df = pos_df[:100000]  ##############################################################
+            neg_df = pd.read_parquet(os.path.join(script_dir, "neg_refined.parquet"))
+            ms2db_df = pd.read_parquet(os.path.join(script_dir, "ms2db.parquet"))
+            return pos_df, neg_df, ms2db_df
+        else:
+            st.error(f"❌ Data files not found in script directory: {script_dir}. ")
+            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()            
 
     # Load the data
     pos_df, neg_df, ms2db_df = load_data()
@@ -83,6 +76,13 @@ with col2:
             help="Select the type of match to filter results. 'Spectral match' requires a high MS/MS similarity score, 'Delta mass' filters based on mass difference.",
             index=2
         )
+        # map match_filter to integer
+        if match_filter == "Spectral match":
+            match_filter_ls = ['spec']
+        elif match_filter == "Delta mass":
+            match_filter_ls = ['delta']
+        else:
+            match_filter_ls = ['spec', 'delta']
     
     # Add min_count input in the second column
     with input_col3:
@@ -136,7 +136,7 @@ with col2:
                         image_caption = common_names[0] if common_names else "Chemical structure"
                         
                         # Display the chemical structure image
-                        image_url = get_structure_image_pubchem(smiles_input)
+                        image_url = get_structure_image_gnps2(smiles_input)
                         st.image(image_url, caption=image_caption, use_container_width=True)
                     
                     with info_col:                        
@@ -146,8 +146,9 @@ with col2:
                             names_str = ', '.join(common_names[:3])
                             st.markdown(f"**Common names:** {names_str}")
                         st.markdown(f"**Formula:** {formula}")
-                        st.markdown(f"**InChIKey:** {inchikey}")                        
-                        st.markdown(f"**Monoisotopic mass:** {calc_monoisotopic_mass(formula):.4f}")
+                        st.markdown(f"**InChIKey:** {inchikey}")
+                        mono_mass = calc_monoisotopic_mass(formula)                
+                        st.markdown(f"**Monoisotopic mass:** {mono_mass:.4f}")
                         
                     with description_col:
                         # Fetch and display the description from PubChem
@@ -159,11 +160,11 @@ with col2:
                 inchikey_14 = inchikey[:14]  # Use the first 14 characters of the InChIKey
                 
                 # Search both positive and negative modes
-                pos_filtered = filter_by_inchikey(pos_df, ms2db_df, inchikey_14, min_count)
+                pos_filtered = filter_search_results(pos_df, ms2db_df, inchikey_14, mono_mass, min_count, match_filter_ls)
                 if not pos_filtered.empty:
                     pos_filtered['Ion polarity'] = '+'
                 
-                neg_filtered = filter_by_inchikey(neg_df, ms2db_df, inchikey_14, min_count)
+                neg_filtered = filter_search_results(neg_df, ms2db_df, inchikey_14, mono_mass, min_count, match_filter_ls)
                 if not neg_filtered.empty:
                     neg_filtered['Ion polarity'] = '-'
                 
@@ -177,25 +178,31 @@ with col2:
                     
                     # Concatenate the filtered DataFrames
                     df_filtered = pd.concat([pos_filtered, neg_filtered], ignore_index=True)
+                    # Rename columns for clarity
+                    df_filtered = df_filtered.rename(columns={
+                        'count': 'Count',
+                        'delta_mass': 'Delta mass'
+                    })
                     
                     # Add a bar chart showing the frequency of delta masses
                     if len(df_filtered) > 1:  # Only show chart if there are multiple results
                         st.subheader("Distribution of Delta Masses")
                         
                         # Group by delta_mass and sum the counts
-                        delta_mass_counts = df_filtered.groupby('delta_mass')['count'].sum().reset_index()
-                        delta_mass_counts.columns = ['Delta mass', 'Total count']
-                        delta_mass_counts = delta_mass_counts.sort_values('Delta mass')
+                        delta_mass_counts = df_filtered.groupby(['Delta mass', 'Ion polarity'])['Count'].sum().reset_index()
+                        # delta_mass_counts['Ion polarity'] = delta_mass_counts['Ion polarity'].apply(lambda x: '#809bce' if x == '+' else '#eac4d5')
                         
                         # Create a column with specific width to control the chart size
                         chart_col1, chart_col2, chart_col3 = st.columns([1, 10, 1])
                         
                         with chart_col2:
                             # Create the bar chart in the middle column
-                            chart = st.bar_chart(
+                            chart = st.scatter_chart(
                                 data=delta_mass_counts,
                                 x='Delta mass',
-                                y='Total count',
+                                y='Count',
+                                size='Count',
+                                color='Ion polarity',
                                 use_container_width=True
                             )
                     
@@ -203,14 +210,8 @@ with col2:
                     df_filtered = add_mirror_plot_urls(df_filtered)
                     
                     # Select columns to display
-                    display_cols = ['Ion polarity', 'count', 'delta_mass', 'Conjugate name',
-                                'Mirror plot (Ref 1)', 'Mirror plot (Ref 2)', 'Match type']
-                    df_filtered = df_filtered[display_cols]
-                    # Rename columns for clarity
-                    df_filtered = df_filtered.rename(columns={
-                        'count': 'Count',
-                        'delta_mass': 'Delta mass'
-                    })
+                    df_filtered = df_filtered[['Ion polarity', 'Count', 'Delta mass', 'Conjugate name', 
+                                               'Mirror plot (Ref 1)', 'Mirror plot (Ref 2)', 'Match type']]
                     
                     # Display results
                     st.subheader(f"Result Table")
@@ -235,3 +236,13 @@ with col2:
                         },
                         hide_index=True,
                     )
+                    
+    # Add final notes and copyright at the bottom of the page
+    st.markdown("---")
+    st.markdown("""
+    ### Notes
+    1. All search results are based on 2D chemical structure.
+    2. Reference spectra from NIST20 are only commercially available and do not have valid USIs. In spectral matches where NIST20 spectra are involved, only the query MS/MS will be shown in the mirror plot viewer.
+    
+    © All rights reserved, Shipei Xing 2025
+    """)

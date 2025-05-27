@@ -6,40 +6,60 @@ import urllib.parse
 ms2db_df: name, 'db', 'db_id', 'inchikey_14', monoisotopic_mass'
 '''
 
-def filter_by_inchikey(df, ms2db_df, inchikey, min_count):
+def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_filter_ls=['spec', 'delta']):
     """
-    Filter the DataFrame by 2D InChIKey.
+    Filter the DataFrame by 2D InChIKey and monoisotopic mass.
     """
     
-    # from ms2db_df, get rows with given inchikey
-    ms2db_filtered = ms2db_df[(ms2db_df['inchikey_14'] == inchikey)].reset_index(drop=True)
-    if ms2db_filtered.empty:
-        return None
-    # Get db_id from the filtered ms2db_df
-    db_ids = ms2db_filtered['db_id'].tolist()
+    dbid_to_inchi_dict = ms2db_df.set_index('db_id')['inchikey_14'].to_dict()
     
-    df_filtered1 = df[(df['ref_1_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
-    df_filtered1['Match type'] = 'Ref 1'
-    df_filtered2 = df[(df['ref_2_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
-    df_filtered2['Match type'] = 'Ref 2'
-    
-    db_to_inchi_dict = ms2db_df.set_index('db_id')['inchikey_14'].to_dict()
-    if not df_filtered1.empty:
-        df_filtered1['conjugate_inchikey'] = df_filtered1['ref_2_id'].apply(lambda x: db_to_inchi_dict.get(x, None))
-    
-    if not df_filtered2.empty:
-        df_filtered2['conjugate_inchikey'] = df_filtered2['ref_1_id'].apply(lambda x: db_to_inchi_dict.get(x, None))
-        del db_to_inchi_dict
+    result_dfs = []
+    if 'spec' in match_filter_ls:
+        # from ms2db_df, get rows with given inchikey
+        ms2db_filtered = ms2db_df[(ms2db_df['inchikey_14'] == inchikey)].reset_index(drop=True)
+        if not ms2db_filtered.empty:
+            # Get db_id from the filtered ms2db_df
+            db_ids = ms2db_filtered['db_id'].tolist()
+            del ms2db_filtered
         
-        db_to_mass_dict = ms2db_df.set_index('db_id')['monoisotopic_mass'].to_dict()
-        df_filtered2['delta_mass'] = df_filtered2['ref_1_id'].apply(lambda x: round(db_to_mass_dict.get(x, 0) - 18.0106, 2))
-        del db_to_mass_dict
+            df_filtered1 = df[(df['ref_1_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
+            df_filtered1['Match type'] = 'Spectral match (Ref 1)'
+            df_filtered2 = df[(df['ref_2_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
+            df_filtered2['Match type'] = 'Spectral match (Ref 2)'
+            
+            
+            if not df_filtered1.empty:
+                df_filtered1['conjugate_inchikey'] = df_filtered1['ref_2_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
+                
+                result_dfs.append(df_filtered1)
+            
+            if not df_filtered2.empty:
+                df_filtered2['conjugate_inchikey'] = df_filtered2['ref_1_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
+                
+                db_to_mass_dict = ms2db_df.set_index('db_id')['monoisotopic_mass'].to_dict()
+                df_filtered2['delta_mass'] = df_filtered2['ref_1_id'].apply(lambda x: round(db_to_mass_dict.get(x, 0) - 18.0106, 2))
+                del db_to_mass_dict
+                
+                result_dfs.append(df_filtered2)
     
-    # Concatenate the two filtered DataFrames
-    df_filtered = pd.concat([df_filtered1, df_filtered2], ignore_index=True)
+    if 'delta' in match_filter_ls:
+        target_mass = round(mono_mass - 18.0106, 2)
+        # Filter by delta mass
+        df_filtered3 = df[(df['delta_mass'] == target_mass) & (df['count'] >= min_count)].reset_index(drop=True)
+        if not df_filtered3.empty:
+            df_filtered3['Match type'] = 'Delta mass'
+            # Add conjugate inchikey
+            df_filtered3['conjugate_inchikey'] = df_filtered3['ref_1_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
+            del dbid_to_inchi_dict
+            # Add delta mass results
+            result_dfs.append(df_filtered3)
     
-    if df_filtered.empty:
+    if not result_dfs:
         return pd.DataFrame()
+    
+    # Concatenate the filtered DataFrames
+    df_filtered = pd.concat(result_dfs, ignore_index=True)
+    del result_dfs
     
     # fill in conjugate names
     inchikey_to_name = ms2db_df.set_index('inchikey_14')['name'].to_dict()
@@ -133,11 +153,11 @@ def gen_mirror_plot_url(usi1, usi2):
         # "height": 6.0,
         # "mz_min": None,
         # "mz_max": None,
-        # "max_intensity": 125,
+        "max_intensity": 150,
         # "annotate_precision": 4,
         # "annotation_rotation": 90,
         "cosine": "shifted",
-        # "fragment_mz_tolerance": 0.1,
+        "fragment_mz_tolerance": 0.05,
         # "grid": True,
 
         # "annotate_peaks": "[[],[]]"
