@@ -20,8 +20,7 @@ with st.sidebar:
         
     ### Citation
     Please use it responsibly and cite [our work](https://doi.org/10.1101/2025.01.01.123456) if you find it useful:
-    - Xing S, et al. "Conjugated Metabolome..."  
-      <https://doi.org/10.1101/2025.01.01.123456>. 2025
+    - S. Xing, V. Charron-Lamoureux, A. Patan, ..... [Navigating the underexplored conjugated metabolome](https://doi.org/10.1101/2025.01.01.123456). 2025
     
     ### Contact
     For questions or feedback, please contact Shipei Xing at
@@ -210,40 +209,92 @@ with col2:
                     df_filtered = df_filtered[['Ion polarity', 'Annotation type', 'Count', 'Conjugate delta mass', 'Conjugate name', 
                                                'Mirror plot (Ref 1)', 'Mirror plot (Ref 2)', 'Match type']]
                     
-                    # Display results
-                    st.subheader(f"Result Table")
                     
-                    table_col1, table_col2, table_col3 = st.columns([1, 12, 1])
-                    with table_col2:
-                        # Display the dataframe with clickable links
-                        st.dataframe(
-                            df_filtered,
-                            column_config={
-                                "Mirror plot (Ref 1)": st.column_config.LinkColumn(
-                                    "Mirror plot (Ref 1)",
-                                    width="medium",
-                                    help="Click to view mirror plot between query MS/MS and reference 1",
-                                    display_text="View",
-                                    required=False
-                                ),
-                                "Mirror plot (Ref 2)": st.column_config.LinkColumn(
-                                    "Mirror plot (Ref 2)",
-                                    width="medium",
-                                    help="Click to view mirror plot between query MS/MS and reference 2",
-                                    display_text="View",
-                                    required=False
-                                ),
-                            },
-                            hide_index=True,
-                        )
+                    
+                    # After preparing df_filtered but before displaying it
+                    if not df_filtered.empty:
+                        st.subheader("Filter Results")
+                        
+                        _, filter_col1, filter_col2, filter_col3, filter_col4, _ = st.columns([1, 2, 2, 2, 2, 1])
+                        
+                        # Filter by Ion polarity
+                        with filter_col1:
+                            available_polarities = ['All', '+', '-']
+                            polarity_filter = st.selectbox('Ion polarity:', available_polarities)
+                            
+                        # Filter by Annotation type
+                        with filter_col2:
+                            available_annotations = ['All', 'spec_spec', 'spec_delta']
+                            annotation_filter = st.selectbox('Annotation type:', available_annotations)
+                        
+                        # Filter by Conjugate name (has name or not)
+                        with filter_col3:
+                            name_filter = st.selectbox('Conjugate name:', ['All', 'Has name', 'No name'])
+                        
+                        # Filter by Match type
+                        with filter_col4:
+                            available_matches = ['All', 'spec (ref 1)', 'spec (ref 2)', 'delta']
+                            match_filter = st.selectbox('Match type:', available_matches)
+                        
+                        
+                        # Apply the filters
+                        filtered_results = df_filtered.copy()
+                        
+                        if polarity_filter != 'All':
+                            filtered_results = filtered_results[filtered_results['Ion polarity'] == polarity_filter]
+                            
+                        if annotation_filter != 'All':
+                            filtered_results = filtered_results[filtered_results['Annotation type'] == annotation_filter]
+                            
+                        if match_filter != 'All':
+                            filtered_results = filtered_results[filtered_results['Match type'] == match_filter]
+                            
+                        if name_filter == 'Has name':
+                            filtered_results = filtered_results[filtered_results['Conjugate name'].notna() & 
+                                                                (filtered_results['Conjugate name'] != '')]
+                        elif name_filter == 'No name':
+                            filtered_results = filtered_results[filtered_results['Conjugate name'].isna() | 
+                                                                (filtered_results['Conjugate name'] == '')]
+                        
+                        _, info_col, _ = st.columns([1, 8, 1])
+                        with info_col:
+                            # Show how many results are displayed after filtering
+                            st.info(f"Showing {len(filtered_results)} of {len(df_filtered)} results")
+                        
+                        # Display the filtered dataframe
+                        st.subheader(f"Result Table")
+                        
+                        table_col1, table_col2, table_col3 = st.columns([1, 15, 1])
+                        with table_col2:
+                            # Display the filtered dataframe with clickable links
+                            st.dataframe(
+                                filtered_results,
+                                column_config={
+                                    "Mirror plot (Ref 1)": st.column_config.LinkColumn(
+                                        "Mirror plot (Ref 1)",
+                                        width="medium",
+                                        help="Click to view mirror plot between query MS/MS and reference 1",
+                                        display_text="View",
+                                        required=False
+                                    ),
+                                    "Mirror plot (Ref 2)": st.column_config.LinkColumn(
+                                        "Mirror plot (Ref 2)",
+                                        width="medium",
+                                        help="Click to view mirror plot between query MS/MS and reference 2",
+                                        display_text="View",
+                                        required=False
+                                    ),
+                                },
+                                hide_index=True,
+                            )
                     
     # Add final notes and copyright at the bottom of the page
     st.markdown("---")
     st.markdown("""
     ### Notes
-    1. All search results are based on 2D chemical structure.
-    2. This app does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://doi.org/10.1101/2025.01.01.123456) and [Zenodo repository](https://zenodo.org/record/1234567). Due to memory limit, for each conjugation, we only reserve one representative query MS/MS and its corresponding reference MS/MS spectra in the result table.
-    3. Reference spectra from [MassBank](https://github.com/MassBank/MassBank-data/releases) and NIST20 (commercially available) do not have USIs. In spectral matches where MassBank or NIST20 spectra are involved, only the query MS/MS will be shown in the mirror plot viewer.
+    1. This app does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://doi.org/10.1101/2025.01.01.123456) and [Zenodo repository](https://zenodo.org/record/1234567). Due to memory limit, for each conjugation, we only reserve one representative query MS/MS and its corresponding reference MS/MS spectra in the result table.
+    2. Reference spectra from [MassBank](https://github.com/MassBank/MassBank-data/releases) and NIST20 (commercially available) do not have USIs. In spectral matches where MassBank or NIST20 spectra are involved, only the query MS/MS will be shown in the mirror plot viewer.
+    3. All search results are based on 2D chemical structure.
     4. Column descriptions:
     - **Ion polarity**: The ion polarity of the query MS/MS.
     - **Annotation type**: how the query MS/MS is annotated in the search results.
