@@ -176,14 +176,24 @@ def load_delta_mass(
     return delta
 
 
-if __name__ == "__main__":
-    # Process both files with parallel processing
-    # main('/Users/shipei/Documents/projects/chemical_conjugate_discovery/analysis/data/neg_best_raw.tsv',
-    #      mode='neg')
-    # main('/Users/shipei/Documents/projects/chemical_conjugate_discovery/analysis/data/pos_best_raw.tsv',
-    #      mode='pos')
+def filter(tsv_path):
+    """
+    Filter the annotated results to keep only the relevant columns
+    """
+    df = pd.read_csv(tsv_path, sep='\t', low_memory=False)
 
-    main('/home/shipei/projects/revcos/search/results/neg_stitched/neg_best_raw.tsv',
-         mode='neg')
-    main('/home/shipei/projects/revcos/search/results/pos_stitched/pos_best_raw.tsv',
-         mode='pos')
+    df = df[(df['ref_1_prec_frag_int'] >= 0.05) | (df['ref_1_prec_frag_water_loss_int'] >= 0.05)].reset_index(drop=True)
+
+    df.to_pickle(tsv_path.replace('.tsv', '.pkl'))
+    print(f"Filtered results saved")
+
+
+if __name__ == "__main__":
+
+    # main('/home/shipei/projects/revcos/search/results/neg_stitched/neg_best_raw.tsv',
+    #      mode='neg')
+    filter('/home/shipei/projects/revcos/search/results/neg_stitched/neg_best_annotated.tsv')
+    
+    # main('/home/shipei/projects/revcos/search/results/pos_stitched/pos_best_raw.tsv',
+    #      mode='pos')
+    filter('/home/shipei/projects/revcos/search/results/pos_stitched/pos_best_annotated.tsv')

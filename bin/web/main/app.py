@@ -16,8 +16,7 @@ with st.sidebar:
     ### About
     This app allows you to explore potential metabolite conjugations using SMILES strings.
     
-    - This webpage does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://doi.org/10.1101/2025.01.01.123456) and [Zenodo repository](https://zenodo.org/record/1234567).
-    - Due to memory usage, for each conjugation, we only reserve one representative query MS/MS and its corresponding reference MS/MS spectra in the result table.
+    This webpage does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://doi.org/10.1101/2025.01.01.123456) and [Zenodo repository](https://zenodo.org/record/1234567).
         
     ### Citation
     Please use it responsibly and cite [our work](https://doi.org/10.1101/2025.01.01.123456) if you find it useful:
@@ -42,7 +41,6 @@ with col2:
         if os.path.exists(pos_path):
             # st.info(f"✅ Loading files from script directory: {script_dir}")
             pos_df = pd.read_parquet(pos_path)
-            pos_df = pos_df[:100000]  ##############################################################
             neg_df = pd.read_parquet(os.path.join(script_dir, "neg_refined.parquet"))
             ms2db_df = pd.read_parquet(os.path.join(script_dir, "ms2db.parquet"))
             return pos_df, neg_df, ms2db_df
@@ -131,7 +129,7 @@ with col2:
                     st.subheader("Compound Information")
                     
                     # Results section with columns for info and structure
-                    _, structure_col, _, info_col, _, description_col = st.columns([1, 3, 1, 7, 1, 6])
+                    _, structure_col, _, info_col, description_col = st.columns([1, 3, 1, 7, 7])
                     
                     with structure_col:
                         common_names = inchikey_to_common_name(inchikey)
@@ -245,8 +243,9 @@ with col2:
     st.markdown("""
     ### Notes
     1. All search results are based on 2D chemical structure.
-    2. Reference spectra from [MassBank](https://github.com/MassBank/MassBank-data/releases) and NIST20 (commercially available) do not have USIs. In spectral matches where MassBank or NIST20 spectra are involved, only the query MS/MS will be shown in the mirror plot viewer.
-    3. Column descriptions:
+    2. Due to memory usage, for each conjugation, we only reserve one representative query MS/MS and its corresponding reference MS/MS spectra in the result table.
+    3. Reference spectra from [MassBank](https://github.com/MassBank/MassBank-data/releases) and NIST20 (commercially available) do not have USIs. In spectral matches where MassBank or NIST20 spectra are involved, only the query MS/MS will be shown in the mirror plot viewer.
+    4. Column descriptions:
     - **Ion polarity**: The ion polarity of the query MS/MS.
     - **Annotation type**: how the query MS/MS is annotated in the search results.
         - spec_spec: Query MS/MS is explained as a conjugate of two component molecules, and both components are explained by reference MS/MS via spectral matching.
