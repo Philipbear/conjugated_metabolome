@@ -236,7 +236,7 @@ with col2:
                         
                         # Filter by Match type
                         with filter_col4:
-                            available_matches = ['All', 'spec (ref 1)', 'spec (ref 2)', 'delta']
+                            available_matches = ['All', 'spec (ref 1)', 'spec (ref 2)', 'spec (ref 1) or spec (ref 2)', 'delta']
                             match_filter = st.selectbox('Match type:', available_matches)
                         
                         
@@ -250,7 +250,11 @@ with col2:
                             filtered_results = filtered_results[filtered_results['Annotation type'] == annotation_filter]
                             
                         if match_filter != 'All':
-                            filtered_results = filtered_results[filtered_results['Match type'] == match_filter]
+                            if match_filter == 'spec (ref 1) or spec (ref 2)':
+                                filtered_results = filtered_results[(filtered_results['Match type'] == 'spec (ref 1)') | 
+                                                                   (filtered_results['Match type'] == 'spec (ref 2)')]
+                            else:
+                                filtered_results = filtered_results[filtered_results['Match type'] == match_filter]
                             
                         if name_filter == 'Has name':
                             filtered_results = filtered_results[filtered_results['Conjugate name'].notna() & 
