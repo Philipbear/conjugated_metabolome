@@ -102,7 +102,7 @@ with col2:
     # Process the demo button
     if demo_button:
         # Set demo SMILES in session state and trigger rerun
-        st.session_state.demo_smiles = 'C1=CC=C(C=C1)C[C@@H](C(=O)O)N'
+        st.session_state.demo_smiles = 'C1=CC(=CC=C1C[C@@H](C(=O)O)N)O'
         st.rerun()
     
     # Clear demo SMILES from session state if user manually changes the input
