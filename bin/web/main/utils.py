@@ -169,13 +169,14 @@ def prepare_delta_mass_plot(df_filtered):
     return delta_mass_counts
 
 
-def add_mirror_plot_urls(df):
+def add_urls(df):
     """
     Add mirror plot URLs to the DataFrame.
     """
     # Initialize columns for URLs and display text
     df['Mirror plot (Ref 1)'] = df.apply(lambda x: gen_mirror_plot_url(x['qry_usi'], x['usi1']), axis=1)
     df['Mirror plot (Ref 2)'] = df.apply(lambda x: gen_mirror_plot_url(x['qry_usi'], x['usi2']), axis=1)
+    df['MASST'] = df.apply(lambda x: gen_fasst_url(x['qry_usi']), axis=1)
     
     return df
 
@@ -233,6 +234,29 @@ def gen_mirror_plot_url(usi1, usi2):
         # If usi2 is not valid, remove it from the parameters
         params.pop("usi2")
     
+    # URL encode the parameters
+    query_string = urllib.parse.urlencode(params)
+    
+    # Create the full URL
+    url = f"{base_url}?{query_string}"
+    
+    return url
+
+
+def gen_fasst_url(usi):
+    """
+    Generate a URL for fasst MASST
+    """
+    
+
+    # Create the base URL
+    base_url = "https://fasst.gnps2.org/fastsearch/"
+    
+    # Define parameters
+    params = {
+        "library_select": "metabolomicspanrepo_index_latest",
+        "usi1": usi
+    }
     # URL encode the parameters
     query_string = urllib.parse.urlencode(params)
     

@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from utils import filter_search_results, prepare_delta_mass_plot, add_mirror_plot_urls
+from utils import filter_search_results, prepare_delta_mass_plot, add_urls
 from chem_utils import smiles_to_formula_inchikey, calc_monoisotopic_mass, inchikey_to_common_name, get_structure_image_pubchem, get_structure_image_gnps2, get_compound_description_pubchem
 
 
@@ -205,12 +205,12 @@ with col2:
                                 use_container_width=True
                             )
                     
-                    # Add mirror plot URLs
-                    df_filtered = add_mirror_plot_urls(df_filtered)
+                    # Add mirror plot URLs and FASST links
+                    df_filtered = add_urls(df_filtered)
                     
                     # Select columns to display
                     df_filtered = df_filtered[['Ion polarity', 'Annotation type', 'Count', 'Conjugate delta mass', 'Conjugate name', 
-                                               'Mirror plot (Ref 1)', 'Mirror plot (Ref 2)', 'Match type']]
+                                               'Mirror plot (Ref 1)', 'Mirror plot (Ref 2)', 'Match type', 'MASST']]
                     
                     
                     
@@ -321,6 +321,13 @@ with col2:
                                     width="small",
                                     help="How the target compound is found"
                                 ),
+                                "MASST": st.column_config.LinkColumn(
+                                    "MASST",
+                                    width="small",
+                                    help="Link to the fast MASST search results",
+                                    display_text="MASST",
+                                    required=False
+                                )
                             },
                             hide_index=True,
                             use_container_width=True
