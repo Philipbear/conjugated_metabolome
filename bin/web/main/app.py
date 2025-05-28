@@ -21,8 +21,7 @@ with st.sidebar:
     ### Citation
     Please use it responsibly and cite [our work](https://doi.org/10.1101/2025.01.01.123456) if you find it useful:
     - Xing S, et al. "Conjugated Metabolome..."  
-      <https://doi.org/10.1101/2025.01.01.123456>  
-      (Accessed: 2025-01-01)
+      <https://doi.org/10.1101/2025.01.01.123456>. 2025
     
     ### Contact
     For questions or feedback, please contact Shipei Xing at
@@ -86,7 +85,7 @@ with col2:
     
     # Add min_count input in the second column
     with input_col3:
-        min_count = st.number_input("Min frequency:", min_value=1, max_value=100, value=1, step=1,
+        min_count = st.number_input("Min frequency:", min_value=2, max_value=100, value=2, step=1,
                                     help="Minimum frequency of a conjugation in public LC-MS/MS datasets to be included in the results.",
                                     format="%d")
         
@@ -243,7 +242,7 @@ with col2:
     st.markdown("""
     ### Notes
     1. All search results are based on 2D chemical structure.
-    2. Due to memory usage, for each conjugation, we only reserve one representative query MS/MS and its corresponding reference MS/MS spectra in the result table.
+    2. This app does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://doi.org/10.1101/2025.01.01.123456) and [Zenodo repository](https://zenodo.org/record/1234567). Due to memory limit, for each conjugation, we only reserve one representative query MS/MS and its corresponding reference MS/MS spectra in the result table.
     3. Reference spectra from [MassBank](https://github.com/MassBank/MassBank-data/releases) and NIST20 (commercially available) do not have USIs. In spectral matches where MassBank or NIST20 spectra are involved, only the query MS/MS will be shown in the mirror plot viewer.
     4. Column descriptions:
     - **Ion polarity**: The ion polarity of the query MS/MS.

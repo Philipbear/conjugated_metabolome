@@ -184,7 +184,8 @@ def filter(tsv_path):
 
     df = df[(df['ref_1_prec_frag_int'] >= 0.05) | (df['ref_1_prec_frag_water_loss_int'] >= 0.05)].reset_index(drop=True)
 
-    df.to_pickle(tsv_path.replace('.tsv', '.pkl'))
+    df.to_csv(tsv_path.replace('.tsv', '_final.tsv'), sep='\t', index=False)
+    # df.to_pickle(tsv_path.replace('.tsv', '_final.pkl'))
     print(f"Filtered results saved")
 
 
