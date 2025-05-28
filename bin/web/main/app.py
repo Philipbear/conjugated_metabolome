@@ -189,7 +189,7 @@ with col2:
                         delta_mass_counts = prepare_delta_mass_plot(df_filtered)
                                                 
                         # Create a column with specific width to control the chart size
-                        chart_col1, chart_col2, chart_col3 = st.columns([1, 10, 1])
+                        chart_col1, chart_col2, chart_col3 = st.columns([1, 12, 1])
                         
                         with chart_col2:
                             # Create the bar chart in the middle column
@@ -197,8 +197,11 @@ with col2:
                                 data=delta_mass_counts,
                                 x='Conjugate delta mass',
                                 y='Count',
+                                x_label='Conjugate delta mass (Da)',
+                                y_label='Observed frequency',
                                 size='Count',
                                 color='Ion polarity',
+                                height=450,
                                 use_container_width=True
                             )
                     
@@ -213,7 +216,7 @@ with col2:
                     
                     # After preparing df_filtered but before displaying it
                     if not df_filtered.empty:
-                        st.subheader("Filter Results")
+                        st.subheader("Result Table")
                         
                         _, filter_col1, filter_col2, filter_col3, filter_col4, _ = st.columns([1, 2, 2, 2, 2, 1])
                         
@@ -261,32 +264,63 @@ with col2:
                             # Show how many results are displayed after filtering
                             st.info(f"Showing {len(filtered_results)} of {len(df_filtered)} results")
                         
-                        # Display the filtered dataframe
-                        st.subheader(f"Result Table")
+                        # # Display the filtered dataframe
+                        # st.subheader(f"Result Table")
                         
-                        table_col1, table_col2, table_col3 = st.columns([1, 15, 1])
-                        with table_col2:
-                            # Display the filtered dataframe with clickable links
-                            st.dataframe(
-                                filtered_results,
-                                column_config={
-                                    "Mirror plot (Ref 1)": st.column_config.LinkColumn(
-                                        "Mirror plot (Ref 1)",
-                                        width="medium",
-                                        help="Click to view mirror plot between query MS/MS and reference 1",
-                                        display_text="View",
-                                        required=False
-                                    ),
-                                    "Mirror plot (Ref 2)": st.column_config.LinkColumn(
-                                        "Mirror plot (Ref 2)",
-                                        width="medium",
-                                        help="Click to view mirror plot between query MS/MS and reference 2",
-                                        display_text="View",
-                                        required=False
-                                    ),
-                                },
-                                hide_index=True,
-                            )
+                        # Display the filtered dataframe with clickable links
+                        st.dataframe(
+                            filtered_results,
+                            column_config={
+                                "Ion polarity": st.column_config.TextColumn(
+                                    "Ion polarity",
+                                    width="small",
+                                    help="Ionization polarity of the query MS/MS"
+                                ),
+                                "Annotation type": st.column_config.TextColumn(
+                                    "Annotation type",
+                                    width="small",
+                                    help="How query MS/MS are annotated"
+                                ),
+                                "Count": st.column_config.NumberColumn(
+                                    "Count",
+                                    width="small",
+                                    help="Frequency in public LC-MS/MS datasets",
+                                    format="%d"
+                                ),
+                                "Conjugate delta mass": st.column_config.NumberColumn(
+                                    "Conjugate delta mass",
+                                    width="small",
+                                    help="Mass of the conjugate component",
+                                    format="%.2f"
+                                ),
+                                "Conjugate name": st.column_config.TextColumn(
+                                    "Conjugate name",
+                                    width="large",
+                                    help="Name of the conjugate component"
+                                ),
+                                "Mirror plot (Ref 1)": st.column_config.LinkColumn(
+                                    "Mirror plot (Ref 1)",
+                                    width="small",
+                                    help="Click to view mirror plot between query MS/MS and reference 1",
+                                    display_text="View",
+                                    required=False
+                                ),
+                                "Mirror plot (Ref 2)": st.column_config.LinkColumn(
+                                    "Mirror plot (Ref 2)",
+                                    width="small",
+                                    help="Click to view mirror plot between query MS/MS and reference 2",
+                                    display_text="View",
+                                    required=False
+                                ),
+                                "Match type": st.column_config.TextColumn(
+                                    "Match type",
+                                    width="small",
+                                    help="How the target compound is found"
+                                ),
+                            },
+                            hide_index=True,
+                            use_container_width=True
+                        )
                     
     # Add final notes and copyright at the bottom of the page
     st.markdown("---")
@@ -297,7 +331,7 @@ with col2:
     3. All search results are based on 2D chemical structure.
     4. Column descriptions:
     - **Ion polarity**: The ion polarity of the query MS/MS.
-    - **Annotation type**: how the query MS/MS is annotated in the search results.
+    - **Annotation type**: how query MS/MS are annotated in the search results.
         - spec_spec: Query MS/MS is explained as a conjugate of two component molecules, and both components are explained by reference MS/MS via spectral matching.
         - spec_delta: Query MS/MS is explained as a conjugate of a reference MS/MS via spectral matching and a delta mass (one component unannotated).
     - **Count**: The frequency of the conjugation in public LC-MS/MS datasets.
