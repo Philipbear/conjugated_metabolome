@@ -232,7 +232,7 @@ with col2:
                         
                         # Filter by Conjugate name (has name or not)
                         with filter_col3:
-                            name_filter = st.selectbox('Conjugate name:', ['All', 'Has name', 'No name'])
+                            name_filter = st.selectbox('Conjugate name:', ['All', 'Has name (annotated)', 'No name (unannotated)'])
                         
                         # Filter by Match type
                         with filter_col4:
@@ -256,10 +256,10 @@ with col2:
                             else:
                                 filtered_results = filtered_results[filtered_results['Match type'] == match_filter]
                             
-                        if name_filter == 'Has name':
+                        if name_filter == 'Has name (annotated)':
                             filtered_results = filtered_results[filtered_results['Conjugate name'].notna() & 
                                                                 (filtered_results['Conjugate name'] != '')]
-                        elif name_filter == 'No name':
+                        elif name_filter == 'No name (unannotated)':
                             filtered_results = filtered_results[filtered_results['Conjugate name'].isna() | 
                                                                 (filtered_results['Conjugate name'] == '')]
                         
