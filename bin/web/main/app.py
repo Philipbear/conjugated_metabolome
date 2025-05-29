@@ -54,7 +54,7 @@ with col2:
     st.header("Search")
     
     # Create two columns for the input fields
-    input_col1, input_col2, input_col3 = st.columns([3, 1, 1])
+    input_col1, _, input_col2, _ = st.columns([3, 1, 1, 1])
     
     # Initialize demo SMILES in session state if demo button is clicked
     if 'demo_smiles' not in st.session_state:
@@ -66,24 +66,8 @@ with col2:
         # strip
         smiles_input = smiles_input.strip()
 
-    # Add filter dropdown in the third column
-    with input_col2:
-        match_filter = st.selectbox(
-            "Target compound is found by:",
-            ["Spectral match", "Delta mass", "Spectral match or delta mass"],
-            help="Select the type of match to filter results. 'Spectral match' requires a high MS/MS similarity score, 'Delta mass' filters based on mass difference.",
-            index=2
-        )
-        # map match_filter to integer
-        if match_filter == "Spectral match":
-            match_filter_ls = ['spec']
-        elif match_filter == "Delta mass":
-            match_filter_ls = ['delta']
-        else:
-            match_filter_ls = ['spec', 'delta']
-    
     # Add min_count input in the second column
-    with input_col3:
+    with input_col2:
         min_count = st.number_input("Min frequency:", min_value=2, max_value=100, value=2, step=1,
                                     help="Minimum frequency of a conjugation in public LC-MS/MS datasets to be included in the results.",
                                     format="%d")
@@ -158,11 +142,11 @@ with col2:
                 inchikey_14 = inchikey[:14]  # Use the first 14 characters of the InChIKey
                 
                 # Search both positive and negative modes
-                pos_filtered = filter_search_results(pos_df, ms2db_df, inchikey_14, mono_mass, min_count, match_filter_ls)
+                pos_filtered = filter_search_results(pos_df, ms2db_df, inchikey_14, mono_mass, min_count)
                 if not pos_filtered.empty:
                     pos_filtered['Ion polarity'] = '+'
                 
-                neg_filtered = filter_search_results(neg_df, ms2db_df, inchikey_14, mono_mass, min_count, match_filter_ls)
+                neg_filtered = filter_search_results(neg_df, ms2db_df, inchikey_14, mono_mass, min_count)
                 if not neg_filtered.empty:
                     neg_filtered['Ion polarity'] = '-'
                 

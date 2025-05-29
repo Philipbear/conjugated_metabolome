@@ -6,7 +6,7 @@ import urllib.parse
 ms2db_df: name, 'db', 'db_id', 'inchikey_14', monoisotopic_mass'
 '''
 
-def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_filter_ls=['spec', 'delta']):
+def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3):
     """
     Filter the DataFrame by 2D InChIKey and monoisotopic mass.
     """
@@ -14,51 +14,49 @@ def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3, match_
     dbid_to_inchi_dict = ms2db_df.set_index('db_id')['inchikey_14'].to_dict()
     
     result_dfs = []
-    if 'spec' in match_filter_ls:
-        # from ms2db_df, get rows with given inchikey
-        ms2db_filtered = ms2db_df[(ms2db_df['inchikey_14'] == inchikey)].reset_index(drop=True)
-        if not ms2db_filtered.empty:
-            # Get db_id from the filtered ms2db_df
-            db_ids = ms2db_filtered['db_id'].tolist()
-            del ms2db_filtered
-        
-            df_filtered1 = df[(df['ref_1_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
-            df_filtered1['Match type'] = 'spec (ref 1)'
-            df_filtered2 = df[(df['ref_2_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
-            df_filtered2['Match type'] = 'spec (ref 2)'
-            
-            
-            if not df_filtered1.empty:
-                df_filtered1['conjugate_inchikey'] = df_filtered1['ref_2_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
-                
-                result_dfs.append(df_filtered1)
-            
-            if not df_filtered2.empty:
-                df_filtered2['conjugate_inchikey'] = df_filtered2['ref_1_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
-                
-                db_to_mass_dict = ms2db_df.set_index('db_id')['monoisotopic_mass'].to_dict()
-                df_filtered2['delta_mass'] = df_filtered2['ref_1_id'].apply(lambda x: round(db_to_mass_dict.get(x, 0) - 18.0106, 2))
-                del db_to_mass_dict
-                
-                result_dfs.append(df_filtered2)
+    # from ms2db_df, get rows with given inchikey
+    ms2db_filtered = ms2db_df[(ms2db_df['inchikey_14'] == inchikey)].reset_index(drop=True)
+    if not ms2db_filtered.empty:
+        # Get db_id from the filtered ms2db_df
+        db_ids = ms2db_filtered['db_id'].tolist()
+        del ms2db_filtered
     
-    if 'delta' in match_filter_ls:
-        target_mass = round(mono_mass - 18.0106, 2)
-        # Filter by delta mass
-        df_filtered3 = df[(abs(df['delta_mass'] - target_mass) <= 0.01)& (df['count'] >= min_count)].reset_index(drop=True)
-        if not df_filtered3.empty:
-            df_filtered3['Match type'] = 'delta'
+        df_filtered1 = df[(df['ref_1_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
+        df_filtered1['Match type'] = 'spec (ref 1)'
+        df_filtered2 = df[(df['ref_2_id'].isin(db_ids)) & (df['count'] >= min_count)].reset_index(drop=True)
+        df_filtered2['Match type'] = 'spec (ref 2)'
+        
+        
+        if not df_filtered1.empty:
+            df_filtered1['conjugate_inchikey'] = df_filtered1['ref_2_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
             
-            # Add conjugate inchikey
-            df_filtered3['conjugate_inchikey'] = df_filtered3['ref_1_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
-            del dbid_to_inchi_dict
+            result_dfs.append(df_filtered1)
+        
+        if not df_filtered2.empty:
+            df_filtered2['conjugate_inchikey'] = df_filtered2['ref_1_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
             
             db_to_mass_dict = ms2db_df.set_index('db_id')['monoisotopic_mass'].to_dict()
-            df_filtered3['delta_mass'] = df_filtered3['ref_1_id'].apply(lambda x: round(db_to_mass_dict.get(x, 0) - 18.0106, 2))
+            df_filtered2['delta_mass'] = df_filtered2['ref_1_id'].apply(lambda x: round(db_to_mass_dict.get(x, 0) - 18.0106, 2))
             del db_to_mass_dict
             
-            # Add results
-            result_dfs.append(df_filtered3)
+            result_dfs.append(df_filtered2)
+    
+    # Filter by delta mass
+    target_mass = round(mono_mass - 18.0106, 2)
+    df_filtered3 = df[(abs(df['delta_mass'] - target_mass) <= 0.01)& (df['count'] >= min_count)].reset_index(drop=True)
+    if not df_filtered3.empty:
+        df_filtered3['Match type'] = 'delta'
+        
+        # Add conjugate inchikey
+        df_filtered3['conjugate_inchikey'] = df_filtered3['ref_1_id'].apply(lambda x: dbid_to_inchi_dict.get(x, None))
+        del dbid_to_inchi_dict
+        
+        db_to_mass_dict = ms2db_df.set_index('db_id')['monoisotopic_mass'].to_dict()
+        df_filtered3['delta_mass'] = df_filtered3['ref_1_id'].apply(lambda x: round(db_to_mass_dict.get(x, 0) - 18.0106, 2))
+        del db_to_mass_dict
+        
+        # Add results
+        result_dfs.append(df_filtered3)
     
     if not result_dfs:
         return pd.DataFrame()
