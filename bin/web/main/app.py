@@ -83,7 +83,7 @@ def main():
                                         format="%d")
             
         # Create a row for the buttons
-        button_col1, _, button_col2, _ = st.columns([1, 1, 1, 3])
+        button_col1, _, button_col2, _ = st.columns([2, 1, 2, 7])
         
         # Add the Search button in the first column
         with button_col1:
