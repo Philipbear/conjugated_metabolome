@@ -78,7 +78,7 @@ def main():
 
         # Add min_count input in the second column
         with input_col2:
-            min_count = st.number_input("Min frequency:", min_value=2, max_value=100, value=2, step=1,
+            min_count = st.number_input("Min frequency:", min_value=3, max_value=100, value=3, step=1,
                                         help="Minimum frequency of a conjugation observed in public LC-MS/MS datasets to be included.",
                                         format="%d")
             
