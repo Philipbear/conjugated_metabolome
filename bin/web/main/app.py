@@ -16,7 +16,7 @@ def main():
 
     # Left panel with app info
     with st.sidebar:
-        st.title("Conjugated Metabolome Explorer")
+        st.title("Conjugated Metabolome Explorer (beta version)")
         st.image("https://ccms-ucsd.github.io/GNPSDocumentation/img/logo/GNPS_logo_original_transparent.png", width=150)
         
         st.markdown("""
@@ -347,7 +347,7 @@ def main():
         - **Ion polarity**: The ion polarity of the query MS/MS.
         - **Annotation type**: how query MS/MS are annotated in the search results.
             - spec_spec: Query MS/MS is explained as a conjugate of two component molecules, and both components are explained by reference MS/MS via spectral matching.
-            - spec_delta: Query MS/MS is explained as a conjugate of a reference MS/MS via spectral matching and a delta mass (one component unannotated).
+            - spec_delta: Query MS/MS is explained as a conjugate of a reference MS/MS via spectral matching and a delta mass.
         - **Count**: The frequency of the conjugation in public LC-MS/MS datasets.
         - **Conjugate delta mass**: The mass of the conjugate component.
         - **Conjugate name**: The name of the conjugate component, if available.
