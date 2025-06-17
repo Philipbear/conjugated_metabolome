@@ -15,7 +15,7 @@ def prepare_ms2_lib(mode='p', mz_tol=0.025,
 
     db = []
 
-    all_df = pd.read_pickle('//db/ms2db/all/all_ms2db_metadata.pkl')
+    all_df = pd.read_pickle('db/ms2db/all/all_ms2db_metadata.pkl')
     all_df = all_df[all_df['ion_mode'] == mode].reset_index(drop=True)
 
     if gnps_only:
