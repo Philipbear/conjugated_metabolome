@@ -6,6 +6,16 @@ import urllib.parse
 ms2db_df: name, 'db', 'db_id', 'inchikey_14', monoisotopic_mass'
 '''
 
+def get_git_short_rev():
+    try:
+        with open('.git/logs/HEAD', 'r') as f:
+            last_line = f.readlines()[-1]
+            hash_val = last_line.split()[1]
+        return hash_val[:7]
+    except Exception:
+        return ".git/ not found"
+
+
 def filter_search_results(df, ms2db_df, inchikey, mono_mass, min_count=3):
     """
     Filter the DataFrame by 2D InChIKey and monoisotopic mass.
