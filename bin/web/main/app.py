@@ -154,6 +154,7 @@ def main():
                             st.markdown(f"**Monoisotopic mass:** {mono_mass:.4f}")
                             
                         with description_col:
+                            st.markdown("**Compound description (from PubChem):**")
                             # Fetch and display the description from PubChem
                             description = get_compound_description_pubchem(smiles_input)
                             if description:
