@@ -10,13 +10,13 @@ DEMO_SMILES = 'C1=CC(=CC=C1C[C@@H](C(=O)O)N)O'
 
 def main():
     # Set the page configuration
-    st.set_page_config(page_title="Conjugated Metabolome Explorer", layout="wide")
+    st.set_page_config(page_title="Conjugated Metabolome Explorer (under development)", layout="wide")
     
     initialize_search_history()
 
     # Left panel with app info
     with st.sidebar:
-        st.title("Conjugated Metabolome Explorer (beta version)")
+        st.title("Conjugated Metabolome Explorer (beta version, under development)")
         st.image("https://ccms-ucsd.github.io/GNPSDocumentation/img/logo/GNPS_logo_original_transparent.png", width=150)
         
         st.markdown("""
