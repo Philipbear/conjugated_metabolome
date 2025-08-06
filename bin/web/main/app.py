@@ -16,7 +16,7 @@ def main():
         git_hash = get_git_short_rev()
     except:
         git_hash = "unknown"
-    repo_link = "https://github.com/YOUR-USER/YOUR-REPO"
+    repo_link = "https://github.com/Philipbear/conjugated_metabolome"
 
     st.set_page_config(page_title="Conjugated Metabolome Explorer (under development)", layout="wide",
                        menu_items={"About": (f"**App Version**: {app_version} | "
