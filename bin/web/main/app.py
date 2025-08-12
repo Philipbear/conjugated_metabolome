@@ -23,11 +23,11 @@ def main():
         ### 📖 About
         This app allows you to explore potential metabolite conjugations using SMILES strings.
         
-        This webpage does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://doi.org/10.1101/2025.01.01.123456) and [Zenodo repository](https://zenodo.org/record/1234567).
+        This webpage does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://github.com/Philipbear/conjugated_metabolome) and [Zenodo repository](https://github.com/Philipbear/conjugated_metabolome).
             
         ### 📝 Citation
-        Please use it responsibly and cite [our work](https://doi.org/10.1101/2025.01.01.123456) if you find it useful:
-        - S. Xing, V. Charron-Lamoureux, A. Patan, ..... [Navigating the underexplored conjugated metabolome](https://doi.org/10.1101/2025.01.01.123456). 2025
+        Please use it responsibly and cite [our work](https://github.com/Philipbear/conjugated_metabolome) if you find it useful:
+        - S. Xing, V. Charron-Lamoureux, A. Patan, ..... [Navigating the underexplored conjugated metabolome](https://github.com/Philipbear/conjugated_metabolome). 2025
         
         ### 📧 Contact
         For questions or feedback, please contact Shipei Xing at
