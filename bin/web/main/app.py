@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from utils import filter_search_results, prepare_delta_mass_plot, add_urls
+from utils import filter_search_results, prepare_delta_mass_plot, add_urls, get_git_short_rev
 from chem_utils import smiles_to_formula_inchikey, calc_monoisotopic_mass, inchikey_to_common_name, get_structure_image_pubchem, get_structure_image_gnps2, get_compound_description_pubchem
 
 
@@ -10,7 +10,18 @@ DEMO_SMILES = 'C1=CC(=CC=C1C[C@@H](C(=O)O)N)O'
 
 def main():
     # Set the page configuration
-    st.set_page_config(page_title="Conjugated Metabolome Explorer (under development)", layout="wide")
+
+    app_version = "2025-08-06"
+    try:
+        git_hash = get_git_short_rev()
+    except:
+        git_hash = "unknown"
+    repo_link = "https://github.com/Philipbear/conjugated_metabolome"
+
+    st.set_page_config(page_title="Conjugated Metabolome Explorer (under development)", layout="wide",
+                       menu_items={"About": (f"**App Version**: {app_version} | "
+                                             f"[**Git Hash**: {git_hash}]({repo_link}/commit/{git_hash})")}
+                       )
     
     initialize_search_history()
 
