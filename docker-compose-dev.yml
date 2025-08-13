@@ -1,5 +1,0 @@
-version: '3'
-services:
-  streamlit-conjugated-metabolome:
-    ports:
-    - "5000:5000"
