@@ -112,8 +112,8 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
 
     out_basename = os.path.basename(mgf).replace('.mgf', '') + '_results.pkl'
     out_path = os.path.join(out_folder, out_basename)
-
-    ms1_tol_ppm = 20
+    
+    ms1_tol_ppm = 25
     mz_tol = 0.025
     all_results = []
 
@@ -122,20 +122,20 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
             centroided_peaks = centroid_spectrum_for_search(spec['peaks'], width_da=mz_tol * 2.015)
             qry_mz = float(spec['pepmass'])
 
-            # First hybrid search
+            # search
             matching_result = search_eng.search(
                 precursor_mz=qry_mz,
                 peaks=centroided_peaks,
                 ms1_tolerance_in_da=ms1_tol_ppm * qry_mz / 1e6,
                 ms2_tolerance_in_da=mz_tol,
-                method='hybrid',
+                method='open',
                 precursor_ions_removal_da=-0.5,
                 noise_threshold=0.0,
                 min_ms2_difference_in_da=mz_tol * 2.015,
                 reverse=True
             )
 
-            _score_arr, _matched_peak_arr, _spec_usage_arr = matching_result['hybrid_search']
+            _score_arr, _matched_peak_arr, _spec_usage_arr = matching_result['open_search']
 
             # Filter by top matching cutoffs
             v = np.where((_score_arr >= top_score_cutoff) &
@@ -147,7 +147,10 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
 
             # Process top hits
             ref_id_arr = []
-            ref_prec_int_arr = []
+            ref_prec_int_frag_arr = []
+            ref_prec_int_frag_water_loss_arr = []
+            ref_prec_int_nl_arr = []
+            ref_prec_int_nl_water_loss_arr = []
             score_arr = []
             matched_peak_arr = []
             spec_usage_arr = []
@@ -161,7 +164,7 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
 
             for idx in v:
                 ref_mz = search_eng[idx]['precursor_mz']
-                if ref_mz > qry_mz - 1.5:
+                if ref_mz > qry_mz - 10:
                     continue
 
                 # Find precursor intensity
@@ -178,12 +181,15 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
 
                 ref_prec_int = max(ref_prec_int_frag1, ref_prec_int_frag2, ref_prec_int_nl1, ref_prec_int_nl2)
 
-                if ref_prec_int < top_min_prec_int - 1e-4:
+                if ref_prec_int < top_min_prec_int:
                     continue
 
                 ref_id = search_eng[idx]['id']
                 ref_id_arr.append(ref_id)
-                ref_prec_int_arr.append(ref_prec_int)
+                ref_prec_int_frag_arr.append(ref_prec_int_frag1)
+                ref_prec_int_frag_water_loss_arr.append(ref_prec_int_frag2)
+                ref_prec_int_nl_arr.append(ref_prec_int_nl1)
+                ref_prec_int_nl_water_loss_arr.append(ref_prec_int_nl2)
                 score_arr.append(_score_arr[idx])
                 matched_peak_arr.append(_matched_peak_arr[idx])
                 spec_usage_arr.append(_spec_usage_arr[idx])
@@ -194,7 +200,10 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
 
             # Convert lists to numpy arrays
             ref_id_arr = np.array(ref_id_arr)
-            ref_prec_int_arr = np.array(ref_prec_int_arr, dtype=np.float16)
+            ref_prec_int_frag_arr = np.array(ref_prec_int_frag_arr, dtype=np.float16)
+            ref_prec_int_frag_water_loss_arr = np.array(ref_prec_int_frag_water_loss_arr, dtype=np.float16)
+            ref_prec_int_nl_arr = np.array(ref_prec_int_nl_arr, dtype=np.float16)
+            ref_prec_int_nl_water_loss_arr = np.array(ref_prec_int_nl_water_loss_arr, dtype=np.float16)
             score_arr = np.array(score_arr, dtype=np.float16)
             matched_peak_arr = np.array(matched_peak_arr, dtype=np.int8)
             spec_usage_arr = np.array(spec_usage_arr, dtype=np.float16)
@@ -244,7 +253,10 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
                 'score_arr': score_arr,
                 'peak_arr': matched_peak_arr,
                 'usage_arr': spec_usage_arr,
-                'ref_prec_int_arr': ref_prec_int_arr,
+                'ref_prec_int_frag_arr': ref_prec_int_frag_arr,
+                'ref_prec_int_frag_water_loss_arr': ref_prec_int_frag_water_loss_arr,
+                'ref_prec_int_nl_arr': ref_prec_int_nl_arr,
+                'ref_prec_int_nl_water_loss_arr': ref_prec_int_nl_water_loss_arr,
                 'delta_mass_arr': delta_mass_arr,
                 'delta_result': delta_result
             }
@@ -322,42 +334,21 @@ def _get_fragment_intensity(peaks, mz, tol):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Unified reverse cosine search')
-    parser.add_argument('--input_folder', '-i', help='Folder containing the MGF files',
-                        default='/home/shipei/projects/revcos/cluster/dataset_clustered/pos')
-    parser.add_argument('--out_folder', '-o', help='Folder to store the results',
-                        default='/home/shipei/projects/revcos/search/results')
-    parser.add_argument('--mode', '-m', help='Ion mode: pos or neg',
-                        default='pos')
-
-    # Top hit parameters
-    parser.add_argument('--t_score', '-tsc', type=float, help='Top score cutoff',
-                        default=0.80)
-    parser.add_argument('--t_peak', '-tp', type=int, help='Top minimum matched peaks',
-                        default=3)
-    parser.add_argument('--t_usage', '-tu', type=float, help='Top minimum spectral usage',
-                        default=0.30)
-    parser.add_argument('--t_prec_int', '-tpi', type=float, help='Top minimum precursor intensity',
-                        default=0.05)
-
-    # Delta search parameters
-    parser.add_argument('--d_score', '-dsc', type=float, help='Delta score cutoff',
-                        default=0.50)  # use 0.60 in later refinement (main_stitch.py)
-    parser.add_argument('--d_peak', '-dp', type=int, help='Delta minimum matched peaks',
-                        default=2)  # use 3 in later refinement (main_stitch.py)
-    parser.add_argument('--d_usage', '-du', type=float, help='Delta minimum spectral usage',
-                        default=0.10)  # use 0.10 in later refinement (main_stitch.py)
-
-    # General parameters
-    parser.add_argument('--n_jobs', '-j', type=int, help='Number of parallel processes',
-                        default=None)
-
-    args = parser.parse_args()
-
     start_time = time.time()
-
-    main(args.input_folder, args.out_folder, args.mode,
-         args.t_score, args.t_peak, args.t_usage, args.t_prec_int,
-         args.d_score, args.d_peak, args.d_usage, args.n_jobs)
+    
+    main(folder='/home/shipei/projects/revcos/cluster/dataset_clustered/pos',
+         out_folder='/home/shipei/projects/revcos/search/results/pos',
+         mode='pos',
+         top_score_cutoff=0.7, top_min_matched_peak=3, top_min_spec_usage=0.20, top_min_prec_int=0.05,
+         delta_score_cutoff=0.7, delta_min_matched_peak=2, delta_min_spec_usage=0.05,
+         n_jobs=40)
+    
+    # main(folder='/home/shipei/projects/revcos/cluster/dataset_clustered/neg',
+    #      out_folder='/home/shipei/projects/revcos/search/results/neg',
+    #      mode='neg',
+    #      top_score_cutoff=0.7, top_min_matched_peak=3, top_min_spec_usage=0.20, top_min_prec_int=0.05,
+    #      delta_score_cutoff=0.7, delta_min_matched_peak=2, delta_min_spec_usage=0.05,
+    #      n_jobs=40)
 
     print(f"Total time: {(time.time() - start_time) / 60:.2f} minutes")
+    

@@ -12,7 +12,7 @@ import time
 from multiprocessing import Pool, cpu_count
 
 
-def main(pkl_folder='/home/shipei/projects/revcos/search/results/pos_recheck',
+def main(pkl_folder='/home/shipei/projects/revcos/search/results/pos',
          out_folder='/home/shipei/projects/revcos/search/results/pos_stitched',
          mode='pos', n_jobs=None):
 
@@ -119,7 +119,7 @@ def process_file_wrapper(args):
 
 def process_file(pkl_path, out_folder, mode, db_id_to_mass, db_id_to_inchi14):
     # basic search parameters
-    ms1_tol_ppm = 20  # as ref mzs are recalculated
+    ms1_tol_ppm = 25  # as ref mzs are recalculated
 
     basename = os.path.basename(pkl_path).split('_results')[0]
 
@@ -143,35 +143,37 @@ def process_file(pkl_path, out_folder, mode, db_id_to_mass, db_id_to_inchi14):
             results.extend(this_spec_results)
             continue
 
-        ##################
-        # Filter ref_2 results before processing
         if 'score_arr' in spec['delta_result']:
-            # Create mask for filtering based on score, peak, and usage thresholds
-            mask = (spec['delta_result']['score_arr'] >= 0.6) & \
-                   (spec['delta_result']['peak_arr'] >= 3) & \
-                   (spec['delta_result']['usage_arr'] >= 0.10)
+            # ##################
+            # # Filter ref_2 results before processing
+            # # Create mask for filtering based on score, peak, and usage thresholds
+            # mask = (spec['delta_result']['score_arr'] >= 0.7) & \
+            #        (spec['delta_result']['peak_arr'] >= 2) & \
+            #        (spec['delta_result']['usage_arr'] >= 0.10)
 
-            filtered_indices = np.where(mask)[0]
+            # filtered_indices = np.where(mask)[0]
 
-            # If no results pass the filter, treat as empty delta result
-            if len(filtered_indices) == 0:
-                this_spec_results = gen_from_empty_delta_results(spec)
-                results.extend(this_spec_results)
-                continue
+            # # If no results pass the filter, treat as empty delta result
+            # if len(filtered_indices) == 0:
+            #     this_spec_results = gen_from_empty_delta_results(spec)
+            #     results.extend(this_spec_results)
+            #     continue
 
-            # Create a filtered delta_result
-            filtered_delta_result = {
-                'ref_id_arr': [spec['delta_result']['ref_id_arr'][i] for i in filtered_indices],
-                'score_arr': [spec['delta_result']['score_arr'][i] for i in filtered_indices],
-                'peak_arr': [spec['delta_result']['peak_arr'][i] for i in filtered_indices],
-                'usage_arr': [spec['delta_result']['usage_arr'][i] for i in filtered_indices]
-            }
+            # # Create a filtered delta_result
+            # filtered_delta_result = {
+            #     'ref_id_arr': [spec['delta_result']['ref_id_arr'][i] for i in filtered_indices],
+            #     'score_arr': [spec['delta_result']['score_arr'][i] for i in filtered_indices],
+            #     'peak_arr': [spec['delta_result']['peak_arr'][i] for i in filtered_indices],
+            #     'usage_arr': [spec['delta_result']['usage_arr'][i] for i in filtered_indices]
+            # }
 
-            # Create a copy of spec with filtered delta_result
-            filtered_spec = spec.copy()
-            filtered_spec['delta_result'] = filtered_delta_result
+            # # Create a copy of spec with filtered delta_result
+            # filtered_spec = spec.copy()
+            # filtered_spec['delta_result'] = filtered_delta_result
 
-            this_spec_results = gen_from_delta_results(filtered_spec, q_mass, db_id_to_mass, ms1_tol_ppm)
+            # this_spec_results = gen_from_delta_results(filtered_spec, q_mass, db_id_to_mass, ms1_tol_ppm)
+            
+            this_spec_results = gen_from_delta_results(spec, q_mass, db_id_to_mass, ms1_tol_ppm)
         else:
             # Handle case where delta_result doesn't have expected arrays
             this_spec_results = gen_from_empty_delta_results(spec)
@@ -298,15 +300,15 @@ def gen_from_delta_results(spec, q_mass, db_id_to_mass, ms1_tol_ppm):
 
 if __name__ == "__main__":
 
-    min_total_usage = 0.80
+    min_total_usage = 0.40  # some bile acids have very intense ISFs
 
     start_time = time.time()
-    main('/home/shipei/projects/revcos/search/results/pos_recheck',
+    main('/home/shipei/projects/revcos/search/results/pos',
          '/home/shipei/projects/revcos/search/results/pos_stitched', 'pos', None)
     print(f"Pos total time: {(time.time() - start_time) / 60} minutes")
 
     start_time = time.time()
-    main('/home/shipei/projects/revcos/search/results/neg_recheck',
+    main('/home/shipei/projects/revcos/search/results/neg',
          '/home/shipei/projects/revcos/search/results/neg_stitched', 'neg', None)
     print(f"Neg total time: {(time.time() - start_time) / 60} minutes")
 
