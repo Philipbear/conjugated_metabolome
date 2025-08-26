@@ -230,30 +230,11 @@ if __name__ == "__main__":
 
     # qry spec, ref spec
     
-    # ########
-    # # Example usage
-    # peaks1 = np.array([[50, 8.0], [70, 100.0], [80, 50.0], [100, 50.0]], dtype=np.float32)
-
-    # peaks2 = np.array([[55, 38.0], [80, 66.0], [90, 999.0]], dtype=np.float32)
-
-    # # Example with standard cosine
-    # score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=0)
-    # print(f"Standard Score: {score:.3f}, Matches: {n_matches}")
-
-    # # Example with enhanced reverse cosine
-    # score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=0.6)
-    # print(f"Reverse Score: {score:.3f}, Matches: {n_matches}")
-
-    # # Example with traditional reverse cosine
-    # score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=1)
-    # print(f"Reverse Score: {score:.3f}, Matches: {n_matches}")
-    
     ########
     # Example usage with USIs
     spec1 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581992") # cholyl-levodopa
-    # spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581904") # cholic acid
-    spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006439802") # levodopa
-    
+    spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581904") # cholic acid
+    # spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006439802") # levodopa
     
     peaks1 = np.array(spec1['peaks'], dtype=np.float32)
     peaks2 = np.array(spec2['peaks'], dtype=np.float32)

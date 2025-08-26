@@ -53,16 +53,18 @@ def prepare_ms2_lib(mode='p', mz_tol=0.025,
 
 
 if __name__ == "__main__":
-    # prepare_ms2_lib(mode='p', mz_tol=0.025,
-    #                 peak_intensity_power=0.5,
-    #                 gnps_only=False,
-    #                 new_path='data/indexed_lib_pos.pkl')
-    # prepare_ms2_lib(mode='n', mz_tol=0.025,
-    #                 peak_intensity_power=0.5,
-    #                 gnps_only=False,
-    #                 new_path='data/indexed_lib_neg.pkl')
-
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    
     prepare_ms2_lib(mode='p', mz_tol=0.025,
                     peak_intensity_power=0.5,
-                    gnps_only=True,
-                    new_path='data/indexed_lib_gnps_pos.pkl')
+                    gnps_only=False,
+                    new_path='bin/main/data/indexed_lib_pos.pkl')
+    prepare_ms2_lib(mode='n', mz_tol=0.025,
+                    peak_intensity_power=0.5,
+                    gnps_only=False,
+                    new_path='bin/main/data/indexed_lib_neg.pkl')
+
+    # prepare_ms2_lib(mode='p', mz_tol=0.025,
+    #                 peak_intensity_power=0.5,
+    #                 gnps_only=True,
+    #                 new_path='data/indexed_lib_gnps_pos.pkl')

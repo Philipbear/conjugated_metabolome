@@ -130,7 +130,7 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
                 ms2_tolerance_in_da=mz_tol,
                 method='open',
                 precursor_ions_removal_da=-0.5,
-                noise_threshold=0.0,
+                noise_threshold=0.01,
                 min_ms2_difference_in_da=mz_tol * 2.015,
                 reverse=True
             )
@@ -340,14 +340,14 @@ if __name__ == '__main__':
          out_folder='/home/shipei/projects/revcos/search/results/pos',
          mode='pos',
          top_score_cutoff=0.7, top_min_matched_peak=3, top_min_spec_usage=0.20, top_min_prec_int=0.05,
-         delta_score_cutoff=0.7, delta_min_matched_peak=2, delta_min_spec_usage=0.05,
+         delta_score_cutoff=0.6, delta_min_matched_peak=2, delta_min_spec_usage=0.05,
          n_jobs=40)
     
     # main(folder='/home/shipei/projects/revcos/cluster/dataset_clustered/neg',
     #      out_folder='/home/shipei/projects/revcos/search/results/neg',
     #      mode='neg',
     #      top_score_cutoff=0.7, top_min_matched_peak=3, top_min_spec_usage=0.20, top_min_prec_int=0.05,
-    #      delta_score_cutoff=0.7, delta_min_matched_peak=2, delta_min_spec_usage=0.05,
+    #      delta_score_cutoff=0.6, delta_min_matched_peak=2, delta_min_spec_usage=0.05,
     #      n_jobs=40)
 
     print(f"Total time: {(time.time() - start_time) / 60:.2f} minutes")

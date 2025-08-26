@@ -23,10 +23,10 @@ def preprocess_ms2(peaks, prec_mz,
         Clean, centroid, and normalize a spectrum with the following steps:
         1. Remove empty peaks (m/z <= 0 or intensity <= 0).
         2. Remove peaks with m/z >= max_mz or m/z < min_mz.
-        3. Centroid the spectrum by merging peaks within min_ms2_difference_in_da.
-        4. Remove electronic noise peaks.
-        5. Remove peaks with intensity < relative_intensity_cutoff * max_intensity.
-        6. Keep only the top max_peak_num peaks within every 50 Da.
+        3. Remove electronic noise peaks.
+        4. Remove peaks with intensity < relative_intensity_cutoff * max_intensity.
+        5. Keep only the top max_peak_num peaks within every 50 Da.
+        6. Centroid the spectrum by merging peaks within min_ms2_difference_in_da.
         7. Transform the peak intensity.
         8. peak_intensity_power is used to transform the intensity to intensity^peak_intensity_power.
         9. Normalize the intensity.
@@ -75,8 +75,8 @@ def preprocess_ms2(peaks, prec_mz,
         return np.zeros((0, 2), dtype=np.float32)
     assert peaks.ndim == 2 and peaks.shape[1] == 2, "The input spectrum must be a numpy array with shape (n, 2)."
 
-    # Step 1. Remove empty peaks (m/z <= 0 or intensity <= 0).
-    peaks = peaks[np.bitwise_and(peaks[:, 0] > 0, peaks[:, 1] > 0)]
+    # Step 1. Remove empty peaks (m/z <= 0 or intensity <= 0.2%).
+    peaks = peaks[np.bitwise_and(peaks[:, 0] > 0, peaks[:, 1] > 0.002 * np.max(peaks[:, 1]))]
 
     # Step 2. Remove peaks with m/z >= max_mz or m/z < min_mz.
     if min_mz is not None and min_mz > 0:
@@ -88,7 +88,25 @@ def preprocess_ms2(peaks, prec_mz,
     if peaks.shape[0] == 0:
         return np.zeros((0, 2), dtype=np.float32)
 
-    # Step 3. Centroid the spectrum by merging peaks within min_ms2_difference_in_da.
+    # Step 3. Remove electronic noise peaks.
+    if remove_electronic_noise:
+        peaks = remove_electronic_noise_peaks(peaks)
+        if peaks.shape[0] == 0:
+            return np.zeros((0, 2), dtype=np.float32)
+
+    # Step 4. Remove peaks with intensity < relative_intensity_cutoff * max_intensity.
+    if relative_intensity_cutoff is not None:
+        peaks = peaks[peaks[:, 1] >= relative_intensity_cutoff * np.max(peaks[:, 1])]
+        if peaks.shape[0] == 0:
+            return np.zeros((0, 2), dtype=np.float32)
+
+    # Step 5. Keep only the top 6 peaks within every 50 Da
+    if top6_every_50da:
+        peaks = top_n_per_mz_range(peaks, n_peaks=6, mz_range=50)
+        if peaks.shape[0] == 0:
+            return np.zeros((0, 2), dtype=np.float32)
+
+    # Step 6. Centroid the spectrum by merging peaks within min_ms2_difference_in_da.
     # The peaks will be sorted by m/z in ascending order.
     if min_ms2_difference_in_ppm > 0:
         peaks = centroid_spectrum(peaks, ms2_da=-1, ms2_ppm=min_ms2_difference_in_ppm)
@@ -96,23 +114,7 @@ def preprocess_ms2(peaks, prec_mz,
         peaks = centroid_spectrum(peaks, ms2_da=min_ms2_difference_in_da, ms2_ppm=-1)
     else:
         pass
-
-    # Step 4. Remove electronic noise peaks.
-    if remove_electronic_noise:
-        peaks = remove_electronic_noise_peaks(peaks)
-        if peaks.shape[0] == 0:
-            return np.zeros((0, 2), dtype=np.float32)
-
-    # Step 5. Remove peaks with intensity < relative_intensity_cutoff * max_intensity.
-    if relative_intensity_cutoff is not None:
-        peaks = peaks[peaks[:, 1] >= relative_intensity_cutoff * np.max(peaks[:, 1])]
-
-    # Step 6. Keep only the top 6 peaks within every 50 Da
-    if top6_every_50da:
-        peaks = top_n_per_mz_range(peaks, n_peaks=6, mz_range=50)
-        if peaks.shape[0] == 0:
-            return np.zeros((0, 2), dtype=np.float32)
-
+    
     # Step 7. scale the intensity.
     if peak_scale_k is not None:
         _prec_mz = prec_mz if prec_mz > 0 else np.max(peaks[:, 0])
@@ -161,13 +163,14 @@ def remove_electronic_noise_peaks(peaks: np.ndarray, min_group_size: int = 5) ->
 
     for i in range(max_start_idx):
         peak_group = sorted_peaks[i:i + min_group_size, 1]
-        ref_intensity = peak_group[0]
+        group_min_intensity = peak_group[0]
+        group_max_intensity = peak_group[-1]
 
-        if ref_intensity > max_intensity * 0.60:
+        if group_min_intensity > max_intensity * 0.25:
             break
 
         # Check if all intensities are within 0.5% of the max intensity
-        if np.all(np.abs(peak_group - ref_intensity) / max_intensity <= 0.005):
+        if np.abs(group_max_intensity - group_min_intensity) <= max_intensity * 0.005:
             cutoff_intensity = peak_group[-1]
 
     return peaks[peaks[:, 1] > cutoff_intensity]
