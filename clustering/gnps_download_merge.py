@@ -104,7 +104,7 @@ def run_lftp_command(command):
 
 
 def find_and_download_files(msv_id):
-    base_dirs = ['z01', 'v09', 'v08', 'v07', 'v06', 'v05', 'v04', 'v03', 'v02', 'v01', 'x01']
+    base_dirs = ['z01', 'v11', 'v10', 'v09', 'v08', 'v07', 'v06', 'v05', 'v04', 'v03', 'v02', 'v01', 'x01']
     base_dir = None
     for dir in base_dirs:
         all_dirs = run_lftp_command(f'ls {dir}')

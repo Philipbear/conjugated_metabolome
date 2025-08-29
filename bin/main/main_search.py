@@ -21,7 +21,7 @@ def main(folder='/home/shipei/projects/cluster/unclustered_all',
          mode='pos',
          top_score_cutoff=0.8, top_min_matched_peak=3, top_min_spec_usage=0.30, top_min_prec_int=0.05,
          delta_score_cutoff=0.5, delta_min_matched_peak=2, delta_min_spec_usage=0.10,
-         n_jobs=None):
+         n_jobs=None, server=True):
     """
     Main function to run the unified search process
     """
@@ -37,12 +37,19 @@ def main(folder='/home/shipei/projects/cluster/unclustered_all',
     all_mgfs = [x for x in all_mgfs if x.endswith('.mgf') and not x.startswith('.')]
     all_mgfs = [os.path.join(folder, x) for x in all_mgfs]
 
-    # load search engines and metadata
-    with open(f'indexed_lib_{mode}.pkl', 'rb') as f:
-        search_engine = pickle.load(f)
+    if server:
+        # load search engines and metadata
+        with open(f'indexed_lib_{mode}.pkl', 'rb') as f:
+            search_engine = pickle.load(f)
 
-    with open('db_id_to_mass.pkl', 'rb') as f:
-        db_id_to_mass = pickle.load(f)
+        with open('db_id_to_mass.pkl', 'rb') as f:
+            db_id_to_mass = pickle.load(f)
+    else:
+        with open(f'/Users/shipei/Documents/projects/conjugated_metabolome/bin/main/data/indexed_lib_{mode}.pkl', 'rb') as f:
+            search_engine = pickle.load(f)
+
+        with open('/Users/shipei/Documents/projects/conjugated_metabolome/db/ms2db/all/db_id_to_mass.pkl', 'rb') as f:
+            db_id_to_mass = pickle.load(f)
 
     # Determine number of processes
     if n_jobs is None:
@@ -113,7 +120,7 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
     out_basename = os.path.basename(mgf).replace('.mgf', '') + '_results.pkl'
     out_path = os.path.join(out_folder, out_basename)
     
-    ms1_tol_ppm = 25
+    ms1_tol_ppm = 20
     mz_tol = 0.025
     all_results = []
 
@@ -128,14 +135,14 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
                 peaks=centroided_peaks,
                 ms1_tolerance_in_da=ms1_tol_ppm * qry_mz / 1e6,
                 ms2_tolerance_in_da=mz_tol,
-                method='open',
+                method='hybrid',
                 precursor_ions_removal_da=-0.5,
-                noise_threshold=0.01,
+                noise_threshold=0.0,
                 min_ms2_difference_in_da=mz_tol * 2.015,
                 reverse=True
             )
 
-            _score_arr, _matched_peak_arr, _spec_usage_arr = matching_result['open_search']
+            _score_arr, _matched_peak_arr, _spec_usage_arr = matching_result['hybrid_search']
 
             # Filter by top matching cutoffs
             v = np.where((_score_arr >= top_score_cutoff) &
@@ -339,16 +346,16 @@ if __name__ == '__main__':
     main(folder='/home/shipei/projects/revcos/cluster/dataset_clustered/pos',
          out_folder='/home/shipei/projects/revcos/search/results/pos',
          mode='pos',
-         top_score_cutoff=0.7, top_min_matched_peak=3, top_min_spec_usage=0.20, top_min_prec_int=0.05,
-         delta_score_cutoff=0.6, delta_min_matched_peak=2, delta_min_spec_usage=0.05,
-         n_jobs=40)
+         top_score_cutoff=0.8, top_min_matched_peak=3, top_min_spec_usage=0.30, top_min_prec_int=0.05,
+         delta_score_cutoff=0.7, delta_min_matched_peak=3, delta_min_spec_usage=0.15,
+         n_jobs=40, server=True)
     
-    # main(folder='/home/shipei/projects/revcos/cluster/dataset_clustered/neg',
-    #      out_folder='/home/shipei/projects/revcos/search/results/neg',
-    #      mode='neg',
-    #      top_score_cutoff=0.7, top_min_matched_peak=3, top_min_spec_usage=0.20, top_min_prec_int=0.05,
-    #      delta_score_cutoff=0.6, delta_min_matched_peak=2, delta_min_spec_usage=0.05,
-    #      n_jobs=40)
-
+    main(folder='/home/shipei/projects/revcos/cluster/dataset_clustered/neg',
+         out_folder='/home/shipei/projects/revcos/search/results/neg',
+         mode='neg',
+         top_score_cutoff=0.8, top_min_matched_peak=3, top_min_spec_usage=0.30, top_min_prec_int=0.05,
+         delta_score_cutoff=0.7, delta_min_matched_peak=3, delta_min_spec_usage=0.15,
+         n_jobs=40, server=True)
+    
     print(f"Total time: {(time.time() - start_time) / 60:.2f} minutes")
     
