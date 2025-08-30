@@ -170,19 +170,25 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
                 q_mass += 1.007276
 
             for idx in v:
-                ref_mz = search_eng[idx]['precursor_mz']
-                if ref_mz > qry_mz - 10:
+                ref_id = search_eng[idx]['id']
+                ref_mass = db_id_to_mass.get(ref_id, 0.0)
+                if ref_mass > q_mass - 10:
                     continue
+
+                if mode == 'pos':
+                    ref_mz = ref_mass + 1.007276
+                else:
+                    ref_mz = ref_mass - 1.007276
 
                 # Find precursor intensity
                 ref_prec_int_frag1 = _get_fragment_intensity(centroided_peaks, ref_mz, 0.01)
                 ref_prec_int_frag2 = _get_fragment_intensity(centroided_peaks, ref_mz - 18.010565, 0.01)
 
-                new_target_mz = qry_mz - ref_mz + 18.010565
+                new_target_mass = q_mass - ref_mass + 18.010565
                 if mode == 'pos':
-                    new_target_mz += 1.007276
+                    new_target_mz = new_target_mass + 1.007276
                 else:
-                    new_target_mz -= 1.007276
+                    new_target_mz = new_target_mass - 1.007276
                 ref_prec_int_nl1 = _get_fragment_intensity(centroided_peaks, new_target_mz, 0.01)
                 ref_prec_int_nl2 = _get_fragment_intensity(centroided_peaks, new_target_mz - 18.010565, 0.01)
 
@@ -191,7 +197,6 @@ def process_mgf(mgf, search_eng, db_id_to_mass, out_folder, mode='pos',
                 if ref_prec_int < top_min_prec_int:
                     continue
 
-                ref_id = search_eng[idx]['id']
                 ref_id_arr.append(ref_id)
                 ref_prec_int_frag_arr.append(ref_prec_int_frag1)
                 ref_prec_int_frag_water_loss_arr.append(ref_prec_int_frag2)

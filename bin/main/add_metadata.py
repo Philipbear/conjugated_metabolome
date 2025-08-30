@@ -26,7 +26,7 @@ def process_chunk(chunk, engine, dm_df, mode='pos'):
         mz_tol = max(0.004, 20 * target_mass / 1e6)
 
         # MSBuddy processing
-        formula_list = engine.mass_to_formula(target_mass, mz_tol, False, False, 0.)
+        formula_list = engine.mass_to_formula(target_mass, mz_tol, False, False, 0., True)
 
         if not formula_list:
             continue
@@ -176,25 +176,11 @@ def load_delta_mass(
     return delta
 
 
-def filter(tsv_path):
-    """
-    Filter the annotated results to keep only the relevant columns
-    """
-    df = pd.read_csv(tsv_path, sep='\t', low_memory=False)
-
-    df = df[(df['ref_1_prec_frag_int'] >= 0.05) | (df['ref_1_prec_frag_water_loss_int'] >= 0.05)].reset_index(drop=True)
-
-    df.to_csv(tsv_path.replace('.tsv', '_final.tsv'), sep='\t', index=False)
-    # df.to_pickle(tsv_path.replace('.tsv', '_final.pkl'))
-    print(f"Filtered results saved")
-
 
 if __name__ == "__main__":
 
-    # main('/home/shipei/projects/revcos/search/results/neg_stitched/neg_best_raw.tsv',
-    #      mode='neg')
-    filter('/home/shipei/projects/revcos/search/results/neg_stitched/neg_best_annotated.tsv')
+    main('/home/shipei/projects/revcos/search/results/neg_stitched/neg_best_raw.tsv',
+         mode='neg')
     
-    # main('/home/shipei/projects/revcos/search/results/pos_stitched/pos_best_raw.tsv',
-    #      mode='pos')
-    filter('/home/shipei/projects/revcos/search/results/pos_stitched/pos_best_annotated.tsv')
+    main('/home/shipei/projects/revcos/search/results/pos_stitched/pos_best_raw.tsv',
+         mode='pos')
