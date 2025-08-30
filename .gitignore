@@ -177,6 +177,8 @@ cython_debug/
 *.pptx
 *.db
 *.png
+_*
+
 
 .vscode/
 analysis/
@@ -185,7 +187,6 @@ analysis/
 /bin/revcos_matchms/
 play/
 fig/
-overall_analysis/
 identification/
 clustering/data/
 clustering/figures/
