@@ -1,5 +1,5 @@
 """
-Count annotated spectra and unique annotations using parallel processing
+a single stacked bar plot
 """
 
 import os

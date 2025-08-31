@@ -2,6 +2,7 @@
 Count annotated spectra and unique annotations using parallel processing
 """
 
+from matplotlib.pyplot import ion
 import pandas as pd
 import os
 import multiprocessing as mp
@@ -15,24 +16,42 @@ def process_file(file):
 
     df = pd.read_csv(file, sep='\t', low_memory=False)
     
-    # sort by ref_2_score then ref_1_score
-    df = df.sort_values(by=['ref_2_score', 'ref_1_score'], ascending=False).reset_index(drop=True)
+    # sort by ref_score
+    df = df.sort_values(by=['ref_1_score', 'ref_2_score'], ascending=False).reset_index(drop=True)
     # Drop duplicate qry_id
     df = df.drop_duplicates(subset=['qry_id'], keep='first').reset_index(drop=True)
 
+    df['dataset'] = df['qry_id'].apply(lambda x: x.split(':')[0])
+
     # Create unique annotations
     df['delta_mass_round2'] = df['delta_mass'].apply(lambda x: str(round(x, 2)))
-    
-    df_1 = df[df['ref_2_score'] > 0.1].reset_index(drop=True)
-    df_2 = df[df['ref_2_score'] <= 0.1].reset_index(drop=True)
-    
-    df_1['annotations'] = df_1.apply(lambda x: f"{x['ref_1_inchi']}_{x['ref_2_inchi']}", axis=1)
-    df_2['annotations'] = df_2.apply(lambda x: f"{x['ref_1_inchi']}_{x['delta_mass_round2']}", axis=1)
-    
-    spec_spec_annotations = df_1['annotations'].value_counts().to_dict()
-    spec_delta_annotations = df_2['annotations'].value_counts().to_dict()
 
-    return spec_spec_annotations, spec_delta_annotations
+    df_1 = df[df['ref_2_inchi'].notna()].reset_index(drop=True)
+    df_2 = df[df['ref_2_inchi'].isna()].reset_index(drop=True)
+
+    def get_annotation(row):
+        # sort ref_1_inchi and ref_2_inchi alphabetically
+        inchi_1 = row['ref_1_inchi']
+        inchi_2 = row['ref_2_inchi']
+        try:
+            if inchi_1 > inchi_2:
+                inchi_1, inchi_2 = inchi_2, inchi_1
+        except Exception as e:
+            print(f"Error processing row {row.name}: {e}")
+            print(f"Values: ref_1_inchi={inchi_1}, ref_2_inchi={inchi_2}")
+        return f"{inchi_1}_{inchi_2}"
+
+    df_1['annotations'] = df_1.apply(get_annotation, axis=1)
+    df_2['annotations'] = df_2.apply(lambda x: f"{x['ref_1_inchi']}_{x['delta_mass_round2']}", axis=1)
+
+    df_1 = df_1[['dataset','annotations']]
+    df_2 = df_2[['dataset', 'annotations']]
+    
+    df_1 = df_1.drop_duplicates(subset=['dataset', 'annotations'], keep='first').reset_index(drop=True)
+    df_2 = df_2.drop_duplicates(subset=['dataset', 'annotations'], keep='first').reset_index(drop=True)
+
+    return df_1, df_2
+
 
 def main(input_dir, n_processes=10):
     """
@@ -58,8 +77,8 @@ def main(input_dir, n_processes=10):
     pool = mp.Pool(processes=n_processes)
 
     # Process files in parallel with progress bar
-    all_spec_spec_annotations = {}
-    all_spec_delta_annotations = {}
+    all_spec_spec_annotations = pd.DataFrame(columns=['dataset', 'annotations'])
+    all_spec_delta_annotations = pd.DataFrame(columns=['dataset', 'annotations'])
 
     # Use partial function for processing
     process_func = partial(process_file)
@@ -70,67 +89,52 @@ def main(input_dir, n_processes=10):
                         desc="Processing files"):
         spec_spec_annotations, spec_delta_annotations = result
         
-        # Merge spec-spec annotations
-        for annotation, count in spec_spec_annotations.items():
-            if annotation in all_spec_spec_annotations:
-                all_spec_spec_annotations[annotation] += count
-            else:
-                all_spec_spec_annotations[annotation] = count
-        
-        # Merge spec-delta annotations
-        for annotation, count in spec_delta_annotations.items():
-            if annotation in all_spec_delta_annotations:
-                all_spec_delta_annotations[annotation] += count
-            else:
-                all_spec_delta_annotations[annotation] = count
+        # Merge
+        all_spec_spec_annotations = pd.concat([all_spec_spec_annotations, spec_spec_annotations], ignore_index=True)
+        all_spec_delta_annotations = pd.concat([all_spec_delta_annotations, spec_delta_annotations], ignore_index=True)
 
     # Clean up
     pool.close()
     pool.join()
     
-    # Save results    
-    results = {'spec_spec': all_spec_spec_annotations, 'spec_delta': all_spec_delta_annotations}
-    out_name = 'pos' if 'pos' in input_dir else 'neg'
-    out_name = f'{out_name}_unique_annotation.pkl'
-    out_path = f'overall_analysis/count/data/{out_name}'
-    with open(out_path, 'wb') as f:
-        pickle.dump(results, f)
-        
-    return results
+    # dereplicate
+    all_spec_spec_annotations = all_spec_spec_annotations.drop_duplicates(subset=['dataset', 'annotations'], keep='first').reset_index(drop=True)
+    all_spec_delta_annotations = all_spec_delta_annotations.drop_duplicates(subset=['dataset', 'annotations'], keep='first').reset_index(drop=True)
+
+    # save
+    ion_mode = 'pos' if 'pos' in input_dir else 'neg'
+    out_path_1 = f'overall_analysis/count/data/all_unique_spec_annotation_{ion_mode}.pkl'
+    all_spec_spec_annotations.to_pickle(out_path_1)
+    out_path_2 = f'overall_analysis/count/data/all_unique_delta_annotation_{ion_mode}.pkl'
+    all_spec_delta_annotations.to_pickle(out_path_2)
 
 
-def merge(pos, neg):
-    # merge pos and neg
-    all_spec_spec_annotations = pos['spec_spec']
-    all_spec_delta_annotations = pos['spec_delta']
-    
-    for annotation, count in neg['spec_spec'].items():
-        if annotation in all_spec_spec_annotations:
-            all_spec_spec_annotations[annotation] += count
-        else:
-            all_spec_spec_annotations[annotation] = count
-    
-    for annotation, count in neg['spec_delta'].items():
-        if annotation in all_spec_delta_annotations:
-            all_spec_delta_annotations[annotation] += count
-        else:
-            all_spec_delta_annotations[annotation] = count
-    
-    # Save merged results
-    results = {'spec_spec': all_spec_spec_annotations, 'spec_delta': all_spec_delta_annotations}
-    out_path = 'overall_analysis/count/data/all_unique_annotation.pkl'
-    with open(out_path, 'wb') as f:
-        pickle.dump(results, f)
+def merge_results():
+    pos = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_pos.pkl')
+    neg = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_neg.pkl')
+    merged = pd.concat([pos, neg], ignore_index=True)
+
+    # save
+    out_path = 'overall_analysis/count/data/all_unique_spec_annotation_merged.pkl'
+    merged.to_pickle(out_path)
+
+    pos = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_pos.pkl')
+    neg = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_neg.pkl')
+    merged = pd.concat([pos, neg], ignore_index=True)
+
+    # save
+    out_path = 'overall_analysis/count/data/all_unique_delta_annotation_merged.pkl'
+    merged.to_pickle(out_path)
 
 
 if __name__ == '__main__':
 
     # Process positive mode data
     print("Processing positive mode data...")
-    pos = main('analysis/data/pos')
+    main('analysis/data/pos')
     
     print("\nProcessing negative mode data...")
-    neg = main('analysis/data/neg')
+    main('analysis/data/neg')
 
-    merged_results = merge(pos, neg)
+    merge_results()
     print("\nProcessing complete. Merged results saved.")
