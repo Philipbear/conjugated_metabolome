@@ -177,6 +177,8 @@ cython_debug/
 *.pptx
 *.db
 *.png
+*.npy
+*.txt
 _*
 .*
 
