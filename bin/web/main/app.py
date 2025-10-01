@@ -6,14 +6,6 @@ from chem_utils import smiles_to_formula_inchikey, calc_monoisotopic_mass, inchi
 from pubchem_utils import pubchem_autocomplete, name_to_cid, cid_to_canonical_smiles
 
 
-# =============================================================================
-# DEMO CONFIGURATION
-# =============================================================================
-DEMO_COMPOUND_NAME = "Tyrosine"
-DEMO_SMILES = "C1=CC(=CC=C1C[C@@H](C(=O)O)N)O"
-# =============================================================================
-
-
 def main():
     # Set the page configuration
     app_version = "2025-10-01"
@@ -60,12 +52,10 @@ def initialize_session_state():
     """Initialize all session state variables"""
     session_vars = {
         'search_history': [],
-        'demo_smiles': "",
         'name_suggestions': [],
         'show_suggestions': False,
         'selected_smiles': "",
         'selected_compound_name': "",
-        'demo_name': "",
         'current_search_results': None,
         'current_compound_info': None
     }
@@ -103,13 +93,13 @@ def handle_name_search():
     compound_name = st.text_input(
         "Enter compound name:",
         placeholder=f"e.g., ferulic acid, tyrosine, carnitine",
-        value=st.session_state.get('demo_name', st.session_state.get('compound_name_input', '')),
+        value=st.session_state.get('compound_name_input', ''),
         key="compound_name_input"
     )
     compound_name = compound_name.strip()
     
     # Buttons
-    col1, _, col2, _ = st.columns([3, 1, 2, 7])
+    col1, _ = st.columns([3, 10])
     
     with col1:
         search_pressed = st.button(
@@ -120,36 +110,17 @@ def handle_name_search():
             key="search_name_button"
         )
     
-    with col2:
-        demo_pressed = st.button(
-            "**Load Demo**",
-            type="secondary",
-            use_container_width=True,
-            icon=":material/login:",
-            help=f"Load example: {DEMO_COMPOUND_NAME}",
-            key="name_demo_button"
-        )
-    
-    # Handle demo button
-    if demo_pressed:
-        st.session_state.demo_name = DEMO_COMPOUND_NAME
-        st.rerun()
-    
     # Handle search button
-    if search_pressed:
-        if st.session_state.get('demo_name'):
-            st.session_state.demo_name = ""
+    if search_pressed and compound_name:
+        with st.spinner("Searching PubChem..."):
+            suggestions = pubchem_autocomplete(compound_name)
         
-        if compound_name:
-            with st.spinner("Searching PubChem..."):
-                suggestions = pubchem_autocomplete(compound_name)
-            
-            if suggestions:
-                st.session_state.name_suggestions = suggestions
-                st.session_state.show_suggestions = True
-            else:
-                st.error(f"No compounds found for '{compound_name}'.")
-                st.session_state.show_suggestions = False
+        if suggestions:
+            st.session_state.name_suggestions = suggestions
+            st.session_state.show_suggestions = True
+        else:
+            st.error(f"No compounds found for '{compound_name}'.")
+            st.session_state.show_suggestions = False
     
     # Handle compound selection
     if st.session_state.get('show_suggestions') and st.session_state.get('name_suggestions'):
@@ -211,9 +182,7 @@ def handle_smiles_search():
     """Handle SMILES search interface"""
     # Determine default value
     default_value = ""
-    if st.session_state.demo_smiles:
-        default_value = st.session_state.demo_smiles
-    elif st.session_state.selected_smiles:
+    if st.session_state.selected_smiles:
         default_value = st.session_state.selected_smiles
     
     # SMILES input
@@ -226,7 +195,7 @@ def handle_smiles_search():
     smiles_input = smiles_input.strip()
     
     # Buttons
-    col1, _, col2, _ = st.columns([3, 1, 2, 7])
+    col1, _ = st.columns([3, 10])
     
     with col1:
         search_pressed = st.button(
@@ -237,27 +206,8 @@ def handle_smiles_search():
             key="search_smiles_button"
         )
     
-    with col2:
-        demo_pressed = st.button(
-            "**Load Demo**",
-            type="secondary",
-            use_container_width=True,
-            icon=":material/login:",
-            help=f"Load example: {DEMO_COMPOUND_NAME}",
-            key="demo_button"
-        )
-    
-    # Handle demo button
-    if demo_pressed:
-        st.session_state.demo_smiles = DEMO_SMILES
-        st.rerun()
-    
     # Handle search button
-    if search_pressed:
-        if st.session_state.get('demo_smiles'):
-            st.session_state.demo_smiles = ""
-        
-        if smiles_input:
+    if search_pressed and smiles_input:
             return smiles_input
     
     return ""
@@ -463,11 +413,11 @@ def get_column_config():
         ),
         "annotation_type": st.column_config.TextColumn(
             "Annotation type", width="small",
-            help="How query MS/MS are annotated"
+            help="How query MS/MS are annotated (spec_spec: both components have spectral matches; spec_delta: one component has spectral match)"
         ),
         "count": st.column_config.NumberColumn(
             "Count", width="small",
-            help="Frequency in public LC-MS/MS datasets", format="%d"
+            help="Dataset count in public domains", format="%d"
         ),
         "qry_mz": st.column_config.NumberColumn(
             "Precursor m/z", width="small",
@@ -493,7 +443,7 @@ def get_column_config():
         ),
         "match_type": st.column_config.TextColumn(
             "Match type", width="small",
-            help="How the target compound is found"
+            help="How the target compound is found (spectral match or delta mass search)"
         ),
         "masst": st.column_config.LinkColumn(
             "MASST", width="small",
