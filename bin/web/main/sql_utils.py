@@ -213,9 +213,9 @@ def search_by_inchikey(conn, target_inchikey, min_count):
         ref2_match = row['ref_2_inchikey'] == target_inchikey
         
         if ref1_match:
-            return 'spec (ref 1)', row['ref_2_name'], row['ref_2_mono_mass'] - 18.0106
+            return 'spec (ref 1)', row['ref_2_name'], row['delta_mass']
         elif ref2_match:
-            return 'spec (ref 2)', row['ref_1_name'], row['ref_1_mono_mass'] - 18.0106
+            return 'spec (ref 2)', row['ref_1_name'], round(row['ref_1_mono_mass'] - 18.0106, 2)
         else:
             raise ValueError("InChIKey not found in either reference")
 
@@ -304,7 +304,8 @@ def search_by_delta_mass(conn, target_delta_mass, min_count, mass_tolerance=0.01
     # Add match type indicator
     df['match_type'] = 'delta mass'
     df['conjugate_name'] = df['ref_1_name']  # For delta mass matches, use ref_1_name as conjugate name
-    df['conjugate_delta_mass'] = df['ref_1_mono_mass'] - 18.0106
+    # conjugate_delta_mass is ref_1_mono_mass - water loss, rounded to 2 decimal places
+    df['conjugate_delta_mass'] = df['ref_1_mono_mass'].apply(lambda x: round(x - 18.0106, 2))
 
     # Clean column order with all database info including mono masses
     column_order = [
@@ -365,11 +366,11 @@ def gen_mirror_plot_url(usi1, usi2):
         # "height": 6.0,
         # "mz_min": None,
         # "mz_max": None,
-        "max_intensity": 150,
+        # "max_intensity": 150,
         # "annotate_precision": 4,
         # "annotation_rotation": 90,
         "cosine": "shifted",
-        "fragment_mz_tolerance": 0.05,
+        # "fragment_mz_tolerance": 0.05,
         # "grid": True,
 
         # "annotate_peaks": "[[],[]]"
