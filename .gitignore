@@ -175,7 +175,7 @@ cython_debug/
 *.pkl
 *.svg
 *.pptx
-*.db
+# *.db
 *.png
 *.npy
 *.txt
