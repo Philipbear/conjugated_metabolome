@@ -179,6 +179,7 @@ cython_debug/
 *.png
 *.npy
 # *.txt
+*.parquet
 _*
 .*
 
