@@ -1,5 +1,6 @@
-# Navigation of the pan-repository conjugated metabolome
+# Pan-repository conjugated metabolome
 
+Life’s chemistry is far richer than current biochemical maps reveal. While metabolomics has catalogued tens of thousands of small molecules, deeper layers of biochemical diversity remain largely hidden. Within this uncharted space are **conjugated metabolites** - molecules formed when two or more metabolites are covalently joined through amidation, esterification, ether formation, alkylamination, or related linkages. Such conjugates act as microbial signals, detoxification intermediates, or endogenous regulators, yet their diversity is poorly characterized. Using a reverse spectral search strategy, a data centric approach that compares pairs of MS/MS spectra and filters by substructure masses, we inferred paired substructures for 24,227,439 spectra from public metabolomics repositories.
 
 ## Web app
 For users to quickly explore the conjugated metabolome results, we built a [web app](https://conjugated-metabolome.streamlit.app).
