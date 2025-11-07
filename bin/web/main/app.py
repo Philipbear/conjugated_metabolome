@@ -463,9 +463,6 @@ def render_sidebar():
         ### 📖 About
         This app allows you to explore potential metabolite conjugations using compound names or SMILES strings.
         
-        ### 📝 Citation
-        S. Xing et al. [Navigating the pan-repository conjugated metabolome](https://github.com/Philipbear/conjugated_metabolome).
-        
         ### 📧 Contact
         For questions or feedback, please contact Shipei Xing at
         [philipxsp@hotmail.com](mailto:philipxsp@hotmail.com)
@@ -484,13 +481,13 @@ def render_footer():
     """Render the footer with notes"""
     st.markdown("---")
     st.markdown("""
-    ### Authors
+    ### Contributors
     - Shipei Xing, PhD, University of California San Diego
     - Wilhan Nunes, PhD, University of California San Diego
     - Mingxun Wang, PhD, University of California Riverside
                 
     ### Notes
-    1. This web app does not include all conjugation results. For more comprehensive results, please refer to [our paper](https://doi.org/10.1101/2025.01.01.123456).
+    1. This web app does not include all conjugation results. For more comprehensive results, please refer to our paper.
     2. Only reference MS/MS spectra from [GNPS](https://external.gnps2.org/gnpslibrary) have universal spectrum identifiers, for which mirror plots will be shown.
     3. All search results are based on 2D chemical structure.
     
