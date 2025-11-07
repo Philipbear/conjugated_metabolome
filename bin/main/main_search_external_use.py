@@ -11,7 +11,7 @@ from multiprocessing import Pool, cpu_count
 
 
 def process_chunk(args):
-    chunk_spectra, search_eng, mode, score_cutoff, min_matched_peak, min_spec_usage, min_prec_int = args
+    chunk_spectra, search_eng, search_mode, score_cutoff, min_matched_peak, min_spec_usage, min_prec_int = args
     ms1_tol = 0.02
     ms2_tol = 0.025
     chunk_results = []
@@ -20,21 +20,22 @@ def process_chunk(args):
         try:
             centroided_peaks = centroid_spectrum_for_search(spec['peaks'], width_da=ms2_tol * 2.015)
 
-            qry_mz = float(spec.get('pepmass') or spec.get('precursor_mz') or spec['precursormz'])
+            qry_mz = float(spec.get('pepmass') or spec.get('precursor_mz') or spec.get('precursormz'))
 
             matching_result = search_eng.search(
                 precursor_mz=qry_mz,
                 peaks=centroided_peaks,
                 ms1_tolerance_in_da=ms1_tol,
                 ms2_tolerance_in_da=ms2_tol,
-                method='hybrid',
+                method=search_mode,
                 precursor_ions_removal_da=-0.5,
                 noise_threshold=0.0,
                 min_ms2_difference_in_da=ms2_tol * 2.015,
                 reverse=True
             )
 
-            _score_arr, _matched_peak_arr, _spec_usage_arr = matching_result['hybrid_search']
+            _score_arr, _matched_peak_arr, _spec_usage_arr = matching_result[f'{search_mode}_search']
+
             v = np.where((_score_arr >= score_cutoff) &
                          (_matched_peak_arr >= min_matched_peak) &
                          (_spec_usage_arr >= min_spec_usage))[0]
@@ -45,17 +46,16 @@ def process_chunk(args):
             for idx in v:
                 ref_mz = search_eng[idx]['precursor_mz']
                 ref_prec_int_frag = _get_fragment_intensity(centroided_peaks, ref_mz, ms2_tol / 2)
+                ref_prec_int_frag_water_loss = _get_fragment_intensity(centroided_peaks, ref_mz - 18.010565, ms2_tol / 2)
 
                 # new_target_mz = qry_mz - ref_mz + 18.010565
                 # if mode == 'pos':
                 #     new_target_mz += 1.007276
                 # else:
                 #     new_target_mz -= 1.007276
-                # ref_prec_int_nl = _get_fragment_intensity(centroided_peaks, new_target_mz, mz_tol / 2)
-                # ref_prec_int = max(ref_prec_int_frag, ref_prec_int_nl)
-                
-                
-                ref_prec_int = ref_prec_int_frag
+                # ref_prec_int_nl = _get_fragment_intensity(centroided_peaks, new_target_mz, ms2_tol / 2)
+
+                ref_prec_int = max(ref_prec_int_frag, ref_prec_int_frag_water_loss)
                 if ref_prec_int < min_prec_int - 1e-4:
                     continue
 
@@ -70,7 +70,8 @@ def process_chunk(args):
                     'score': _score_arr[idx],
                     'peak': _matched_peak_arr[idx],
                     'usage': _spec_usage_arr[idx],
-                    'ref_prec_int_in_qry_spec': ref_prec_int
+                    'ref_prec_int_in_qry_spec': ref_prec_int_frag,
+                    'ref_prec_int_in_qry_spec_water_loss': ref_prec_int_frag_water_loss
                 })
 
         except Exception as e:
@@ -84,18 +85,19 @@ def chunk_list(lst, chunk_size):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-def main(mgf_path='input.mgf',
-         ms2db_metadata_path=None,
-         mode='pos', score_cutoff=0.6, min_matched_peak=3,
-         min_spec_usage=0.10, min_prec_int=0.0, n_jobs=None):
-    write_params_to_file(mgf_path, mode, score_cutoff, min_matched_peak,
+def main(mgf_path='input.mgf', ms2db_metadata_path=None, indexed_lib_path=None, search_mode='hybrid',
+         score_cutoff=0.7, min_matched_peak=3, min_spec_usage=0.10, min_prec_int=0.0, n_jobs=None):
+    
+    # check search mode should be one of 'hybrid', 'open'
+    if search_mode not in ['hybrid', 'open']:
+        raise ValueError(f"Invalid search mode: {search_mode}. Must be 'hybrid' or 'open'.")
+
+    write_params_to_file(mgf_path, ms2db_metadata_path, indexed_lib_path, search_mode,
+                         score_cutoff, min_matched_peak,
                          min_spec_usage, min_prec_int, n_jobs)
 
-    # with open(f'bin/main/data/indexed_lib_gnps_{mode}.pkl', 'rb') as f:
-    #     search_engine = pickle.load(f)
-
-    with open(f'/Users/shipei/Documents/projects/conjugated_metabolome/bin/main/data/indexed_lib_{mode}.pkl', 'rb') as f:
-        search_engine = pickle.load(f)
+    with open(indexed_lib_path, 'rb') as f:
+            search_engine = pickle.load(f)
 
     if n_jobs is None:
         n_jobs = max(1, cpu_count() - 1)
@@ -104,11 +106,11 @@ def main(mgf_path='input.mgf',
     spectra = list(read_one_spectrum(mgf_path))
 
     # chunk size
-    chunk_size = 200
+    chunk_size = 250
     chunks = chunk_list(spectra, chunk_size)
 
     # Prepare arguments for parallel processing
-    process_args = [(chunk, search_engine, mode, score_cutoff, min_matched_peak,
+    process_args = [(chunk, search_engine, search_mode, score_cutoff, min_matched_peak,
                      min_spec_usage, min_prec_int) for chunk in chunks]
 
     print(f"Processing {len(chunks)} chunks in parallel...")
@@ -133,12 +135,18 @@ def main(mgf_path='input.mgf',
             metadata = pickle.load(f)
 
         metadata = metadata.rename(columns={'db_id': 'ref_id', 'recalc_prec_mz': 'ref_mz'})
-        metadata = metadata[['ref_id', 'ref_mz', 'name', 'prec_type', 'inchikey', 'ion_mode',
-                             'instrument_type', 'db', 'smiles', 'inchi', 'formula', 'monoisotopic_mass',
-                             'npclassifier_superclass_results', 'npclassifier_class_results',
-                             'npclassifier_pathway_results',
-                             'npclassifier_isglycoside', 'classyfire_superclass', 'classyfire_class',
-                             'classyfire_subclass']]
+        # metadata = metadata[['ref_id', 'ref_mz', 'name', 'prec_type', 'inchikey', 'ion_mode',
+        #                     'instrument_type', 'db', 'smiles', 'inchi', 'formula', 'monoisotopic_mass',
+        #                     'npclassifier_superclass_results', 'npclassifier_class_results',
+        #                     'npclassifier_pathway_results',
+        #                     'npclassifier_isglycoside', 'classyfire_superclass', 'classyfire_class',
+        #                     'classyfire_subclass']]
+        
+        metadata = metadata[['ref_id', 'ref_mz', 'name', 'prec_type', 'inchikey', 'formula', 'monoisotopic_mass']]
+
+        metadata['ref_mz'] = metadata['ref_mz'].round(5)
+        metadata['monoisotopic_mass'] = metadata['monoisotopic_mass'].round(5)
+
         df = df.merge(metadata, on='ref_id', how='left')
 
     df.to_csv(out_path, sep='\t', index=False)
@@ -153,15 +161,18 @@ def _get_fragment_intensity(peaks, mz, tol):
     return np.max(peaks[idx, 1]) / max_intensity
 
 
-def write_params_to_file(mgf, mode, score_cutoff, min_matched_peak,
+def write_params_to_file(mgf_path, ms2db_metadata_path, indexed_lib_path, search_mode,
+                         score_cutoff, min_matched_peak,
                          min_spec_usage, min_prec_int, n_jobs):
-    folder = os.path.dirname(mgf)
+    folder = os.path.dirname(mgf_path)
     params_file = os.path.join(folder, 'search_parameters.txt')
     with open(params_file, 'w') as f:
         f.write("Search Parameters\n")
         f.write("================\n\n")
-        f.write(f"Input MGF: {mgf}\n")
-        f.write(f"Ion Mode: {mode}\n")
+        f.write(f"Input MGF: {mgf_path}\n")
+        f.write(f"MS2DB Metadata Path: {ms2db_metadata_path}\n")
+        f.write(f"Indexed Library Path: {indexed_lib_path}\n")
+        f.write(f"Search Mode: {search_mode}\n")
         f.write(f"Score Cutoff: {score_cutoff}\n")
         f.write(f"Minimum Matched Peaks: {min_matched_peak}\n")
         f.write(f"Minimum Spectral Usage: {min_spec_usage}\n")
@@ -173,9 +184,12 @@ def write_params_to_file(mgf, mode, score_cutoff, min_matched_peak,
 if __name__ == '__main__':
 
     start_time = time.time()
-    main(mgf_path='/Users/shipei/Documents/projects/collab/drug_conjugate_revcos/others_iimn_fbmn_drug_metabolites.mgf',
-         ms2db_metadata_path='/Users/shipei/Documents/projects/conjugated_metabolome/db/ms2db/all/all_ms2db_metadata.pkl', 
-         mode='pos', score_cutoff=0.6,
-         min_matched_peak=3, min_spec_usage=0.10,
-         min_prec_int=0, n_jobs=None)
+    main(mgf_path='/home/shipei/projects/revcos/datasets/MSV000098638/_harsha/hComm_iimn_gnps.mgf',
+         ms2db_metadata_path='/home/shipei/projects/revcos/search/all_ms2db_metadata.pkl',
+         indexed_lib_path='/home/shipei/projects/revcos/search/indexed_lib_gnps_pos.pkl',
+        #  indexed_lib_path='/home/shipei/projects/revcos/search/indexed_lib_pos.pkl',
+         search_mode='open',
+         score_cutoff=0.7, min_matched_peak=3, min_spec_usage=0.10,
+         min_prec_int=0, n_jobs=40)
     print(f"Total time: {(time.time() - start_time) / 60} minutes")
+    

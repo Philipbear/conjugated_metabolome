@@ -50,7 +50,7 @@ def prepare_upset_data(df):
     return upset_data, binary_df
 
 
-def create_upset_plot(upset_data, binary_df, figsize=(8.8, 3.5), min_subset_size=5):
+def create_upset_plot(upset_data, binary_df, figsize=(8.8, 4), min_subset_size=5):
     """
     Create and save UpSet plot
     """
@@ -71,7 +71,7 @@ def create_upset_plot(upset_data, binary_df, figsize=(8.8, 3.5), min_subset_size
         show_counts=True,
         sort_by='cardinality',         # Sort by number of sets in intersection
         sort_categories_by='-cardinality',  # Sort categories by total count
-        element_size=7.4,               # Make dots smaller (default is usually around 32)
+        element_size=7,               # Make dots smaller (default is usually around 32)
         facecolor='0.5',          # Optional: customize dot color
         connecting_line_width=1
     )

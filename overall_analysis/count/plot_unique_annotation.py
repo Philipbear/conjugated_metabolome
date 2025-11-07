@@ -59,7 +59,7 @@ def create_scatter_plot(annotation_counts, x_label, output_path, color='#c7522a'
     plt.rcParams['font.family'] = 'Arial'
     
     # Create figure
-    fig, ax = plt.subplots(figsize=(1.65, 1.15))
+    fig, ax = plt.subplots(figsize=(1.65, 1.))
     
     # Create scatter plot
     ax.scatter(x_positions, dataset_counts, 
@@ -76,7 +76,7 @@ def create_scatter_plot(annotation_counts, x_label, output_path, color='#c7522a'
     
     # Set labels
     ax.set_xlabel(x_label, fontsize=5, color='0.2', labelpad=1.25)
-    ax.set_ylabel('Number of unique datasets', fontsize=5, color='0.2', labelpad=1.2)
+    ax.set_ylabel('Unique datasets', fontsize=5, color='0.2', labelpad=1.2)
     
     # Style the plot
     ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.25)

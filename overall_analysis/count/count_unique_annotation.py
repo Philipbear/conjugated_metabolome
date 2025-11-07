@@ -2,13 +2,11 @@
 Count annotated spectra and unique annotations using parallel processing
 """
 
-from matplotlib.pyplot import ion
 import pandas as pd
 import os
 import multiprocessing as mp
 from tqdm import tqdm
 from functools import partial
-import pickle
 
 
 def process_file(file):
@@ -129,12 +127,23 @@ def merge_results():
 
 if __name__ == '__main__':
 
-    # Process positive mode data
-    print("Processing positive mode data...")
-    main('analysis/data/pos')
+    # # Process positive mode data
+    # print("Processing positive mode data...")
+    # main('analysis/data/pos')
     
-    print("\nProcessing negative mode data...")
-    main('analysis/data/neg')
+    # print("\nProcessing negative mode data...")
+    # main('analysis/data/neg')
 
-    merge_results()
-    print("\nProcessing complete. Merged results saved.")
+    # merge_results()
+    # print("\nProcessing complete. Merged results saved.")
+
+    ######### Print some stats
+    df = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_merged.pkl')
+    print(f"Total unique spec-spec annotations: {df.shape[0]}")
+    df = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_merged.pkl')
+    print(f"Total unique spec-delta annotations: {df.shape[0]}")
+    
+    """
+    Total unique spec-spec annotations: 570754
+    Total unique spec-delta annotations: 7572848
+    """

@@ -83,19 +83,19 @@ def main(input_dir, n_processes=10):
     pool.close()
     pool.join()
 
-    return all_qry_ids, all_annotations
+    return
 
     
 if __name__ == '__main__':
 
-    pos_spectra, pos_annotations = main('analysis/data/pos')
+    main('analysis/data/pos')
     """
     Total number of spectra: 22431333
     Total number of unique annotations: 9375256
     Total ref_2 annotated: 3448465
     """
 
-    neg_spectra, neg_annotations = main('analysis/data/neg')
+    main('analysis/data/neg')
     """
     Total number of spectra: 1796106
     Total number of unique annotations: 766298

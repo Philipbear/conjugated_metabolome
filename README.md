@@ -17,7 +17,8 @@ For users to quickly explore the conjugated metabolome results, we built a [web 
   - [MSV000082433](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000082433) (human feces, losartan conjugates)
   - [MSV000083306](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000083306) (tomato seedling extracts)
   - [MSV000098638](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000098638) (microbial culture)
-  - [MSV000099547](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000099547) (chemical synthesis & verification)
+  - [MSV000099690](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000099690) (chemical synthesis & verification)
+  b05iXn98mW4v4frI
 - Delta masses
   - as summarized in [this ref](https://www.biorxiv.org/content/10.1101/2024.10.07.617109v2)
   - LIPID MAPS ([LMSD](https://www.lipidmaps.org/databases/lmsd/download), 2024-10-23)
