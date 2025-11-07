@@ -178,7 +178,7 @@ cython_debug/
 # *.db
 *.png
 *.npy
-*.txt
+# *.txt
 _*
 .*
 
