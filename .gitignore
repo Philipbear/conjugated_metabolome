@@ -173,10 +173,8 @@ cython_debug/
 *.tsv
 *.csv
 *.pkl
-*.svg
 *.pptx
 # *.db
-*.png
 *.npy
 # *.txt
 *.parquet
@@ -195,3 +193,6 @@ clustering/figures/
 clustering/others/
 db/
 datasets/
+*.tif
+*.graphml
+*.numbers
