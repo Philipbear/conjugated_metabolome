@@ -6,10 +6,10 @@ Life’s chemistry is far richer than current biochemical maps reveal. While met
 
 <table width="100%" border="0">
 <tr>
-  <td width="60%" align="center" valign="center">
+  <td width="65%" align="center" valign="center">
     <img src="gitfigs/revcos.svg" />
   </td>
-  <td width="40%" align="center">
+  <td width="35%" align="center">
     <img src="gitfigs/class.svg" />
   </td>
   <!-- <td width="30%" align="center">
