@@ -31,7 +31,7 @@ def count_datasets_per_annotation(df):
     annotation_datasets = defaultdict(set)
     
     for _, row in df.iterrows():
-        annotation_datasets[row['annotations']].add(row['dataset'])
+        annotation_datasets[row['annotation']].add(row['dataset'])
     
     # Convert sets to counts
     return {annotation: len(datasets) for annotation, datasets in annotation_datasets.items()}
@@ -59,7 +59,7 @@ def create_scatter_plot(annotation_counts, x_label, output_path, color='#c7522a'
     plt.rcParams['font.family'] = 'Arial'
     
     # Create figure
-    fig, ax = plt.subplots(figsize=(1.65, 1.))
+    fig, ax = plt.subplots(figsize=(1.6, 1.))
     
     # Create scatter plot
     ax.scatter(x_positions, dataset_counts, 

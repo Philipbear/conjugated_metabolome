@@ -19,36 +19,28 @@ def process_file(file):
     # Drop duplicate qry_id
     df = df.drop_duplicates(subset=['qry_id'], keep='first').reset_index(drop=True)
 
-    df['dataset'] = df['qry_id'].apply(lambda x: x.split(':')[0])
-
     # Create unique annotations
     df['delta_mass_round2'] = df['delta_mass'].apply(lambda x: str(round(x, 2)))
 
-    df_1 = df[df['ref_2_inchi'].notna()].reset_index(drop=True)
-    df_2 = df[df['ref_2_inchi'].isna()].reset_index(drop=True)
+    def add_annotation(row):
+        if pd.notnull(row['ref_2_inchi']):
+            # sort 2 inchis alphabetically
+            inchi_1 = row['ref_1_inchi']
+            inchi_2 = row['ref_2_inchi']
+            if inchi_1 < inchi_2:
+                return f"{inchi_1}_{inchi_2}"
+            else:
+                return f"{inchi_2}_{inchi_1}"
+        else:
+            return f"{row['ref_1_inchi']}_{row['delta_mass_round2']}"
+    df['annotation'] = df.apply(add_annotation, axis=1)
 
-    def get_annotation(row):
-        # sort ref_1_inchi and ref_2_inchi alphabetically
-        inchi_1 = row['ref_1_inchi']
-        inchi_2 = row['ref_2_inchi']
-        try:
-            if inchi_1 > inchi_2:
-                inchi_1, inchi_2 = inchi_2, inchi_1
-        except Exception as e:
-            print(f"Error processing row {row.name}: {e}")
-            print(f"Values: ref_1_inchi={inchi_1}, ref_2_inchi={inchi_2}")
-        return f"{inchi_1}_{inchi_2}"
+    # add dataset
+    df['dataset'] = df['qry_id'].apply(lambda x: x.split(':')[0])
 
-    df_1['annotations'] = df_1.apply(get_annotation, axis=1)
-    df_2['annotations'] = df_2.apply(lambda x: f"{x['ref_1_inchi']}_{x['delta_mass_round2']}", axis=1)
+    # df = df.drop_duplicates(subset=['annotation'], keep='first').reset_index(drop=True)
 
-    df_1 = df_1[['dataset','annotations']]
-    df_2 = df_2[['dataset', 'annotations']]
-    
-    df_1 = df_1.drop_duplicates(subset=['dataset', 'annotations'], keep='first').reset_index(drop=True)
-    df_2 = df_2.drop_duplicates(subset=['dataset', 'annotations'], keep='first').reset_index(drop=True)
-
-    return df_1, df_2
+    return df[['ref_2_inchi', 'annotation', 'dataset']]
 
 
 def main(input_dir, n_processes=10):
@@ -75,8 +67,7 @@ def main(input_dir, n_processes=10):
     pool = mp.Pool(processes=n_processes)
 
     # Process files in parallel with progress bar
-    all_spec_spec_annotations = pd.DataFrame(columns=['dataset', 'annotations'])
-    all_spec_delta_annotations = pd.DataFrame(columns=['dataset', 'annotations'])
+    all_dfs = pd.DataFrame(columns=['ref_2_inchi', 'annotation', 'dataset'])
 
     # Use partial function for processing
     process_func = partial(process_file)
@@ -85,65 +76,56 @@ def main(input_dir, n_processes=10):
     for result in tqdm(pool.imap_unordered(process_func, files),
                         total=len(files),
                         desc="Processing files"):
-        spec_spec_annotations, spec_delta_annotations = result
-        
-        # Merge
-        all_spec_spec_annotations = pd.concat([all_spec_spec_annotations, spec_spec_annotations], ignore_index=True)
-        all_spec_delta_annotations = pd.concat([all_spec_delta_annotations, spec_delta_annotations], ignore_index=True)
+        all_dfs = pd.concat([all_dfs, result], ignore_index=True)
 
     # Clean up
     pool.close()
     pool.join()
     
-    # dereplicate
-    all_spec_spec_annotations = all_spec_spec_annotations.drop_duplicates(subset=['dataset', 'annotations'], keep='first').reset_index(drop=True)
-    all_spec_delta_annotations = all_spec_delta_annotations.drop_duplicates(subset=['dataset', 'annotations'], keep='first').reset_index(drop=True)
-
     # save
     ion_mode = 'pos' if 'pos' in input_dir else 'neg'
-    out_path_1 = f'overall_analysis/count/data/all_unique_spec_annotation_{ion_mode}.pkl'
-    all_spec_spec_annotations.to_pickle(out_path_1)
-    out_path_2 = f'overall_analysis/count/data/all_unique_delta_annotation_{ion_mode}.pkl'
-    all_spec_delta_annotations.to_pickle(out_path_2)
+    out_path = f'overall_analysis/count/data/all_unique_annotation_{ion_mode}.pkl'
+    all_dfs.to_pickle(out_path)
 
 
 def merge_results():
-    pos = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_pos.pkl')
-    neg = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_neg.pkl')
+    pos = pd.read_pickle('overall_analysis/count/data/all_unique_annotation_pos.pkl')
+    neg = pd.read_pickle('overall_analysis/count/data/all_unique_annotation_neg.pkl')
     merged = pd.concat([pos, neg], ignore_index=True)
 
-    # save
-    out_path = 'overall_analysis/count/data/all_unique_spec_annotation_merged.pkl'
-    merged.to_pickle(out_path)
+    all_spec_spec_annotations = merged[merged['ref_2_inchi'].notnull()].copy()
+    all_spec_delta_annotations = merged[merged['ref_2_inchi'].isnull()].copy()
 
-    pos = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_pos.pkl')
-    neg = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_neg.pkl')
-    merged = pd.concat([pos, neg], ignore_index=True)
-
+    # dereplicate by annotation and dataset
+    all_spec_spec_annotations = all_spec_spec_annotations.drop_duplicates(subset=['annotation', 'dataset'], keep='first').reset_index(drop=True)
+    all_spec_delta_annotations = all_spec_delta_annotations.drop_duplicates(subset=['annotation', 'dataset'], keep='first').reset_index(drop=True)
+    
     # save
-    out_path = 'overall_analysis/count/data/all_unique_delta_annotation_merged.pkl'
-    merged.to_pickle(out_path)
+    all_spec_spec_annotations.to_pickle('overall_analysis/count/data/all_unique_spec_annotation_merged.pkl')
+    all_spec_delta_annotations.to_pickle('overall_analysis/count/data/all_unique_delta_annotation_merged.pkl')
+    
+    # further dereplicate by annotation
+    all_spec_spec_annotations = all_spec_spec_annotations.drop_duplicates(subset=['annotation'], keep='first').reset_index(drop=True)
+    all_spec_delta_annotations = all_spec_delta_annotations.drop_duplicates(subset=['annotation'], keep='first').reset_index(drop=True)
+    
+    print(f"Total unique spec-spec annotations: {all_spec_spec_annotations.shape[0]}")
+    print(f"Total unique spec-delta annotations: {all_spec_delta_annotations.shape[0]}")
+    
 
 
 if __name__ == '__main__':
 
-    # # Process positive mode data
-    # print("Processing positive mode data...")
-    # main('analysis/data/pos')
+    # Process positive mode data
+    print("Processing positive mode data...")
+    main('analysis/data/pos')
     
-    # print("\nProcessing negative mode data...")
-    # main('analysis/data/neg')
+    print("\nProcessing negative mode data...")
+    main('analysis/data/neg')
 
-    # merge_results()
-    # print("\nProcessing complete. Merged results saved.")
-
-    ######### Print some stats
-    df = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_merged.pkl')
-    print(f"Total unique spec-spec annotations: {df.shape[0]}")
-    df = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_merged.pkl')
-    print(f"Total unique spec-delta annotations: {df.shape[0]}")
+    merge_results()
+    print("\nProcessing complete. Merged results saved.")
     
     """
-    Total unique spec-spec annotations: 570754
-    Total unique spec-delta annotations: 7572848
+    Total unique spec-spec annotations: 217291
+    Total unique spec-delta annotations: 3412720
     """
