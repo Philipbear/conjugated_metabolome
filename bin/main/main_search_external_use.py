@@ -184,12 +184,12 @@ def write_params_to_file(mgf_path, ms2db_metadata_path, indexed_lib_path, search
 if __name__ == '__main__':
 
     start_time = time.time()
-    main(mgf_path='/home/shipei/projects/revcos/datasets/MSV000098638/_harsha/hComm_iimn_gnps.mgf',
-         ms2db_metadata_path='/home/shipei/projects/revcos/search/all_ms2db_metadata.pkl',
-         indexed_lib_path='/home/shipei/projects/revcos/search/indexed_lib_gnps_pos.pkl',
-        #  indexed_lib_path='/home/shipei/projects/revcos/search/indexed_lib_pos.pkl',
+    main(mgf_path='/Users/shipei/Downloads/MPRINT_iimn_gnps_noblanksub.mgf',
+         ms2db_metadata_path='db/ms2db/all/all_ms2db_metadata.pkl',
+        #  indexed_lib_path='/home/shipei/projects/revcos/search/indexed_lib_gnps_pos.pkl',
+         indexed_lib_path='bin/main/data/indexed_lib_pos.pkl',
          search_mode='open',
-         score_cutoff=0.7, min_matched_peak=3, min_spec_usage=0.10,
-         min_prec_int=0, n_jobs=40)
+         score_cutoff=0.7, min_matched_peak=4, min_spec_usage=0.10,
+         min_prec_int=0, n_jobs=10)
     print(f"Total time: {(time.time() - start_time) / 60} minutes")
     
