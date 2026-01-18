@@ -272,7 +272,7 @@ def plot_umap_basic_by_class(embedding, compound_ids, classes, highlight_classes
     # font for all text elements
     plt.rcParams['font.family'] = 'Helvetica'
     # Plot colored by class
-    fig, ax = plt.subplots(figsize=(2.9, 1.6))
+    fig, ax = plt.subplots(figsize=(2.9, 1.45))
 
     for i, cls in enumerate(unique_classes):
         mask = np.array(classes) == cls
@@ -288,7 +288,7 @@ def plot_umap_basic_by_class(embedding, compound_ids, classes, highlight_classes
     ax.set_xticks([])
     ax.set_yticks([])
 
-    ax.legend(bbox_to_anchor=(0.95, 0.45), loc='center left', fontsize=5, markerscale=4.5, frameon=False)
+    ax.legend(bbox_to_anchor=(0.97, 0.45), loc='center left', fontsize=5, markerscale=4.5, frameon=False)
     # plt.grid(True, alpha=0.3)    
     
     # # remove top and right spines
