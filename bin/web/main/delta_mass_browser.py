@@ -20,10 +20,16 @@ def render_delta_mass_browser():
         "Sulfate": 79.96,
         "Glucuronide": 176.03,
         "Hexose": 162.05,
+        "Deoxyhexose": 146.06,
         "Pentose": 132.04,
+        "Deoxypentose": 116.05,
         "Glycine": 57.02,
         "Taurine": 107.00,
         "Glutamine": 128.06,
+        "Proline": 97.05,
+        "Phenylalanine": 147.07,
+        "Aspartate": 115.03,
+        "Tryptophan": 186.08,
         "Phosphate": 79.97,
         "C16:0": 256.24,
         "C16:2": 254.24,
@@ -43,7 +49,6 @@ def render_delta_mass_browser():
         with col:
             if st.button(f"{name}\n({mass:.2f} Da)", use_container_width=True, key=f"preset_{name}"):
                 st.session_state.selected_delta_mass = mass
-                st.session_state.delta_mass_input = mass  # Update the input widget state
                 st.rerun()
     
     st.markdown("---")
@@ -60,8 +65,7 @@ def render_delta_mass_browser():
             max_value=1000.0,
             value=float(st.session_state.selected_delta_mass),
             step=0.01,
-            format="%.2f",
-            key="delta_mass_input"
+            format="%.2f"
         )
         # Update session state when user manually changes the input
         st.session_state.selected_delta_mass = delta_mass
