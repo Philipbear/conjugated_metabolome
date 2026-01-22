@@ -188,9 +188,7 @@ analysis/
 play/
 fig/
 identification/
-clustering/data/
-clustering/figures/
-clustering/others/
+clustering/
 db/
 datasets/
 *.tif
