@@ -25,8 +25,8 @@ def process_file(file):
     # sort by ref_2_score
     df = df.sort_values(by='ref_2_score', ascending=False).drop_duplicates(subset=['qry_id'], keep='first').reset_index(drop=True)
     
-    # count how many ref_2_score > 0.1
-    high_score_ids = df[df['ref_2_score'] > 0.1]['qry_id'].tolist()
+    # count how many ref_2_score > 0.5
+    high_score_ids = df[df['ref_2_score'] > 0.5]['qry_id'].tolist()
 
     return qry_ids, annotations, high_score_ids
 

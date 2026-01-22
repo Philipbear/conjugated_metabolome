@@ -2,6 +2,7 @@
 Count annotated spectra and unique annotations using parallel processing
 """
 
+from httpx import get
 import pandas as pd
 import os
 import multiprocessing as mp
@@ -112,6 +113,20 @@ def merge_results():
     print(f"Total unique spec-delta annotations: {all_spec_delta_annotations.shape[0]}")
     
 
+def get_dataset_count():
+    """Get dataset count for each annotation"""
+    
+    all_spec_spec_annotations = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_merged.pkl')    
+    all_spec_delta_annotations = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_merged.pkl')
+    # merge
+    all_annotations = pd.concat([all_spec_spec_annotations, all_spec_delta_annotations], ignore_index=True)
+    # group by annotation and count unique datasets
+    df = all_annotations.groupby('annotation')['dataset'].nunique().reset_index()
+    df = df.rename(columns={'dataset': 'dataset_count'})
+    # sort
+    df = df.sort_values(by='dataset_count', ascending=False).reset_index(drop=True)
+    df.to_csv('overall_analysis/count/data/annotation_dataset_count.tsv', sep='\t', index=False)
+
 
 if __name__ == '__main__':
 
@@ -129,3 +144,5 @@ if __name__ == '__main__':
     Total unique spec-spec annotations: 217291
     Total unique spec-delta annotations: 3412720
     """
+    
+    get_dataset_count()
