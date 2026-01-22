@@ -18,6 +18,12 @@ Life’s chemical diversity far exceeds current biochemical maps. While metabolo
 </tr>
 </table>
 
+## Reverse spectral search
+Reverse spectral search is a template-based MS/MS similarity framework originally proposed for spectral identification and later extended to improve robustness to chimeric spectra. Here, we repurpose reverse spectral searching for substructure annotation. By treating the reference spectrum as a template and scoring only fragment ions characteristic of that structure, reverse spectral search captures partial structural overlap without penalization from additional fragments present in the query spectrum.
+Here, we provide two implementations of reverse cosine similarity:
+- [matchms](https://github.com/matchms/matchms)-based reverse cosine: [revcos.py](https://github.com/Philipbear/conjugated_metabolome/blob/main/bin/revcos_matchms/revcos.py)
+- [Flash](https://github.com/YuanyueLi/FlashEntropySearch) reverse cosine: [flash_revcos.py](https://github.com/Philipbear/conjugated_metabolome/blob/main/bin/main/flash_cos.py)
+
 
 ## Data
 - Conjugate search results of 149.9 million clustered MS/MS: [Zenodo link](https://zenodo.org/records/17245769)
