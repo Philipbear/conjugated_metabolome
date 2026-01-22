@@ -17,6 +17,8 @@ def render_delta_mass_browser():
     st.subheader("Common Conjugation Patterns")
     
     presets = {
+        "Glycine": 57.02,
+        "Taurine": 107.00,
         "Sulfate": 79.96,
         "Glucuronide": 176.03,
         "Hexose": 162.05,
@@ -24,8 +26,6 @@ def render_delta_mass_browser():
         "Pentose": 132.04,
         "Phosphate": 79.97,
         # "Deoxypentose": 116.05,
-        "Glycine": 57.02,
-        "Taurine": 107.00,
         # "Glutamine": 128.06,
         "Proline": 97.05,
         # "Phenylalanine": 147.07,
@@ -259,27 +259,19 @@ def display_delta_mass_results(df, target_mass, tolerance):
                      'ref_1_inchikey', 'ref_1_mono_mass', 'mirror_plot', 'masst']].copy()
     
     # Filter controls
-    _, filter_col1, filter_col2, _ = st.columns([1, 2, 2, 1])
+    _, filter_col, _ = st.columns([2, 2, 2])
     
-    with filter_col1:
-        polarity_filter = st.selectbox('Ion polarity:', ['All', '+', '-'])
-    
-    with filter_col2:
-        sort_by = st.selectbox('Sort by:', ['Dataset count', 'Precursor m/z', 'Compound Name'])
+    with filter_col:
+        polarity_filter = st.selectbox('Ion polarity:', ['+/-', '+', '-'])
     
     # Apply filters
     filtered_df = df_display.copy()
     
-    if polarity_filter != 'All':
+    if polarity_filter != '+/-':
         filtered_df = filtered_df[filtered_df['ion_polarity'] == polarity_filter]
     
-    # Apply sorting
-    if sort_by == 'Dataset count':
-        filtered_df = filtered_df.sort_values('count', ascending=False)
-    elif sort_by == 'Precursor m/z':
-        filtered_df = filtered_df.sort_values('qry_mz', ascending=True)
-    elif sort_by == 'Compound Name':
-        filtered_df = filtered_df.sort_values('ref_1_name', ascending=True)
+    # Always sort by dataset count in descending order
+    filtered_df = filtered_df.sort_values('count', ascending=False)
     
     # Display info
     _, info_col, _ = st.columns([1, 8, 1])

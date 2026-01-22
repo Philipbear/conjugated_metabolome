@@ -75,7 +75,7 @@ def handle_name_search():
     # Name input
     compound_name = st.text_input(
         "Enter compound name:",
-        placeholder=f"e.g., ferulic acid, tyrosine, carnitine",
+        placeholder=f"e.g., tyrosine, phenylacetic acid, ferulic acid",
         value=st.session_state.get('compound_name_input', ''),
         key="compound_name_input"
     )
@@ -331,7 +331,7 @@ def display_results_table(df_results):
         polarity_filter = st.selectbox('Ion polarity:', ['+/-', '+', '-'])
     
     with filter_col2:
-        annotation_filter = st.selectbox('Annotation type:', ['All matches', 'spec_spec', 'spec_delta'], index=1)
+        annotation_filter = st.selectbox('Annotation type:', ['All matches', 'spec_spec', 'spec_delta'], index=0)
     
     with filter_col3:
         name_filter = st.selectbox('Conjugate name:', ['All matches', 'With name (annotated)', 'Without name (unannotated)'], index=1)
@@ -342,6 +342,15 @@ def display_results_table(df_results):
     
     # Apply filters
     filtered_results = apply_filters(df_display, polarity_filter, annotation_filter, name_filter, match_filter)
+    
+    if filtered_results.empty:
+        # display all results if no matches after filtering
+        filtered_results = apply_filters(df_display, '+/-', 'All matches', 'All matches', 'All matches')
+        # show warning
+        st.warning("No results match the current filter criteria. Displaying all results instead.")
+    
+    # Always sort by dataset count in descending order
+    filtered_results = filtered_results.sort_values('count', ascending=False)
     
     # Display filter results summary
     _, info_col, _ = st.columns([1, 8, 1])

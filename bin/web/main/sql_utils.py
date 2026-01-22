@@ -58,10 +58,10 @@ def filter_search_results(db_path, inchikey_14, mono_mass, min_count=1):
 def prepare_delta_mass_plot(df_filtered):
     """
     Efficiently prepare data for delta mass distribution plot.
-    Groups data by delta mass and ion polarity, combining entries that appear in both modes.
+    Groups data by delta mass and ion polarity, using the maximum count for each group.
     """
-    # Group by delta mass and ion polarity, summing the counts
-    delta_mass_counts = df_filtered.groupby(['conjugate_delta_mass', 'ion_polarity'], as_index=False)['count'].sum()
+    # Group by delta mass and ion polarity, taking the maximum count for each group
+    delta_mass_counts = df_filtered.groupby(['conjugate_delta_mass', 'ion_polarity'], as_index=False)['count'].max()
     
     # Split by ion polarity
     pos_data = delta_mass_counts[delta_mass_counts['ion_polarity'] == '+']
@@ -91,8 +91,8 @@ def prepare_delta_mass_plot(df_filtered):
         # First, filter the original dataframe to only include rows with common delta masses
         common_data = delta_mass_counts[delta_mass_counts['conjugate_delta_mass'].isin(common_deltas)]
         
-        # Group by delta mass and sum the counts
-        combined_counts = common_data.groupby('conjugate_delta_mass', as_index=False)['count'].sum()
+        # Group by delta mass and take the maximum count
+        combined_counts = common_data.groupby('conjugate_delta_mass', as_index=False)['count'].max()
 
         # Add the 'both' polarity to each row
         combined_counts['ion_polarity'] = 'both'
