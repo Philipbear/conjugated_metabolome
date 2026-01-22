@@ -43,6 +43,7 @@ def render_delta_mass_browser():
         with col:
             if st.button(f"{name}\n({mass:.2f} Da)", use_container_width=True, key=f"preset_{name}"):
                 st.session_state.selected_delta_mass = mass
+                st.session_state.delta_mass_input = mass  # Update the input widget state
                 st.rerun()
     
     st.markdown("---")
