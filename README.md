@@ -1,6 +1,6 @@
 # Pan-repository conjugated metabolome
 
-We mined 1.32 billion MS/MS spectra across public metabolomics repositories using reverse spectral searching and delta-mass analysis to infer metabolite conjugations. We generated structural hypotheses for 24,227,439 spectra, encompassing 217,291 substructure pairs with dual spectral support and 3,412,720 additional candidates with single-match support. These results provide a pan-repository map of conjugation chemistry, establish a resource for structural discovery, and offer a framework to further explore the potential scale and diversity of the conjugated metabolome.
+We mined 1.32 billion MS/MS spectra across public metabolomics repositories using reverse spectral searching and delta-mass analysis to infer **metabolite conjugations**. We generated structural hypotheses for 24,227,439 spectra, encompassing 217,291 substructure pairs with dual spectral support and 3,412,720 additional candidates with single-match support. These results provide a pan-repository map of conjugation chemistry, establish a resource for structural discovery, and offer a framework to further explore the potential scale and diversity of the conjugated metabolome.
 
 <img src="gitfigs/workflow.svg" width="850"/>
 
@@ -19,13 +19,13 @@ We mined 1.32 billion MS/MS spectra across public metabolomics repositories usin
 </table>
 
 ## Reverse spectral search
-Reverse spectral search is a template-based MS/MS similarity framework originally proposed for spectral identification and later extended to improve robustness to chimeric spectra. Here, we repurpose reverse spectral searching for substructure annotation. 
+`Reverse spectral search` is a template-based MS/MS similarity framework originally proposed for spectral identification and later extended to improve robustness to chimeric spectra. Here, we repurpose reverse spectral searching for substructure annotation. 
 Two implementations of reverse cosine similarity were provided:
 - [matchms](https://github.com/matchms/matchms)-based reverse cosine: [revcos.py](https://github.com/Philipbear/conjugated_metabolome/blob/main/bin/revcos_matchms/revcos.py)
 - [Flash](https://github.com/YuanyueLi/FlashEntropySearch) reverse cosine: [flash_cos.py](https://github.com/Philipbear/conjugated_metabolome/blob/main/bin/main/flash_cos.py)
 
 
-## Data
+## Data availability
 - Conjugate search results of 149.9 million clustered MS/MS: [Zenodo link](https://zenodo.org/records/17245769)
 - GNPS conjugated metabolome libraries: [GNPS external library link](https://external.gnps2.org/gnpslibrary)
 - Web app to explore conjugated metabolome results: [Web app link](https://conjugated-metabolome.streamlit.app)
@@ -45,7 +45,7 @@ Two implementations of reverse cosine similarity were provided:
 
 
 ## Citation
-> S. Xing. Navigation of the pan-repository conjugated metabolome. https://github.com/Philipbear/conjugated_metabolome
+> S. Xing et al. Navigating the pan-repository conjugated metabolome. https://github.com/Philipbear/conjugated_metabolome
 
 
 ## License
