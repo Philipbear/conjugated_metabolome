@@ -12,7 +12,7 @@ def initialize_session_state():
 
 def main():
     # Set the page configuration
-    app_version = "2026-01-21"
+    app_version = "2026-01-22"
     try:
         git_hash = get_git_short_rev()
     except:
@@ -36,7 +36,7 @@ def main():
     initialize_session_state()
     
     # Render sidebar navigation
-    render_sidebar()
+    render_sidebar(app_version)
     
     # Main content
     _, main_col, _ = st.columns([1, 8, 1])
@@ -52,7 +52,7 @@ def main():
             render_delta_mass_browser()
 
 
-def render_sidebar():
+def render_sidebar(app_version):
     """Render the sidebar with navigation and info"""
     with st.sidebar:
         st.image("https://ccms-ucsd.github.io/GNPSDocumentation/img/logo/GNPS_logo_original_transparent.png", width=150)
@@ -105,6 +105,12 @@ def render_sidebar():
         
         ### 📧 Contact
         For questions or feedback, please contact Shipei Xing at [philipxsp@hotmail.com](mailto:philipxsp@hotmail.com).
+        """)
+        
+        # App version info
+        st.markdown(f"""
+        ---
+        **Version:** {app_version}
         """)
 
 
