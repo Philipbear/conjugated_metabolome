@@ -178,16 +178,19 @@ def _get_ref_usi(row):
 def gen_mirror_plot_url(usi1, usi2):
     """Generate a URL for the metabolomics-usi.gnps2.org mirror plot"""
     
-    if usi1 is None or usi2 is None:
+    if usi1 is None:
         return None
 
     base_url = "https://metabolomics-usi.gnps2.org/dashinterface/"
     
     params = {
         "usi1": usi1,
-        "usi2": usi2,
         "cosine": "shifted",
     }
+    
+    # Only add usi2 if it's valid
+    if usi2 is not None:
+        params["usi2"] = usi2
     
     query_string = urllib.parse.urlencode(params)
     url = f"{base_url}?{query_string}"
