@@ -228,8 +228,7 @@ def load_from_usi(usi, max_retries=5, delay=1):
 
 if __name__ == "__main__":
 
-    # qry spec, ref spec
-    
+    # qry spec, ref spec    
     ########
     # Example usage with USIs
     spec1 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581992") # cholyl-levodopa
@@ -238,16 +237,20 @@ if __name__ == "__main__":
     
     peaks1 = np.array(spec1['peaks'], dtype=np.float32)
     peaks2 = np.array(spec2['peaks'], dtype=np.float32)
+    prec_mz_shift = spec1['prec_mz'] - spec2['prec_mz']
 
     # Example with standard cosine
     score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=0, shift=0)
     print(f"Standard Score: {score:.3f}, Matches: {n_matches}")
     
-    # Example with modified cosine
-    prec_mz_shift = spec1['prec_mz'] - spec2['prec_mz']
+    # Example with modified cosine    
     score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=0, shift=prec_mz_shift)
     print(f"Modified Score: {score:.3f}, Matches: {n_matches}")
 
     # Example with reverse cosine
     score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=1, shift=0)
     print(f"Reverse Score: {score:.3f}, Matches: {n_matches}")
+
+    # Example with modified reverse cosine
+    score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=1, shift=prec_mz_shift)
+    print(f"Modified Reverse Score: {score:.3f}, Matches: {n_matches}")
