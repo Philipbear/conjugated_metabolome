@@ -169,6 +169,10 @@ cython_debug/
 # OS specific
 .DS_Store
 
+# Project specific folders
+data/
+plots/
+
 *.mgf
 *.tsv
 *.csv
