@@ -55,8 +55,8 @@ def main():
 def render_sidebar(app_version):
     """Render the sidebar with navigation and info"""
     with st.sidebar:
-        st.image("https://ccms-ucsd.github.io/GNPSDocumentation/img/logo/GNPS_logo_original_transparent.png", width=150)
-        st.title("Conjugated Metabolome Explorer")
+        st.image("https://raw.githubusercontent.com/Philipbear/conjugated_metabolome/main/gitfigs/logo.svg", width=300)
+        # st.title("Conjugated Metabolome Explorer")
                 
         st.markdown("---")
         
