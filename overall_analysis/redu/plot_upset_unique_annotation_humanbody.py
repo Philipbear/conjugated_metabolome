@@ -243,32 +243,21 @@ def analyze_intersections(binary_df, top_n=20):
     return top_intersections
 
 
-def create_summary_statistics(df, binary_df):
+def create_summary_statistics(binary_df):
     """
-    Create summary statistics for the dataset
+    Create summary statistics table for the binary_df.
+    Returns a DataFrame with counts for each unique body part combination.
     """
-    print('\n=== Summary Statistics ===')
+    # Convert to boolean if not already
+    binary_df_bool = binary_df.astype(bool)
     
-    total_annotations = len(binary_df)
-    total_body_parts = len(binary_df.columns)
-    total_spectra = df['count'].sum()
+    # Group by all body part columns and count occurrences
+    summary_table = binary_df_bool.groupby(list(binary_df_bool.columns)).size().reset_index(name='count')
     
-    print(f'Total unique annotations: {total_annotations:,}')
-    print(f'Total body parts: {total_body_parts}')
-    print(f'Total annotated spectra: {total_spectra:,}')
+    # Sort by count in descending order
+    summary_table = summary_table.sort_values('count', ascending=False).reset_index(drop=True)
     
-    # Annotations found in multiple body parts
-    annotations_per_bodypart = binary_df.sum(axis=1)
-    multi_bodypart_annotations = (annotations_per_bodypart > 1).sum()
-    single_bodypart_annotations = (annotations_per_bodypart == 1).sum()
-    
-    print(f'Annotations found in multiple body parts: {multi_bodypart_annotations:,} ({multi_bodypart_annotations/total_annotations*100:.1f}%)')
-    print(f'Annotations found in single body part: {single_bodypart_annotations:,} ({single_bodypart_annotations/total_annotations*100:.1f}%)')
-    
-    # Most ubiquitous annotations
-    max_bodyparts = annotations_per_bodypart.max()
-    most_ubiquitous = annotations_per_bodypart[annotations_per_bodypart == max_bodyparts].index
-    print(f'Most ubiquitous annotation(s) found in {max_bodyparts} body parts: {len(most_ubiquitous)} annotation(s)')
+    return summary_table
 
 
 def plot_body_part_distribution(binary_df, figsize=(10, 6)):
@@ -328,7 +317,9 @@ def main():
     upset_data, binary_df = prepare_upset_data(df)
     
     # Create summary statistics
-    create_summary_statistics(df, binary_df)
+    summary_table = create_summary_statistics(binary_df)
+    print(summary_table)
+    summary_table.to_csv('overall_analysis/redu/data/human_bodypart_summary.tsv', sep='\t', index=False)
     
     # Analyze intersections
     top_intersections = analyze_intersections(binary_df)

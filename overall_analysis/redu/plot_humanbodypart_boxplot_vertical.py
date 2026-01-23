@@ -4,8 +4,7 @@ import numpy as np
 from matplotlib.patches import Rectangle
 
 
-def create_human_body_part_boxplot():
-
+def create_human_data():
     # Load the data
     df = pd.read_csv('data/redu_with_data.tsv', sep='\t', low_memory=False)
     df = df[df['all'] > 0].reset_index(drop=True)
@@ -19,6 +18,15 @@ def create_human_body_part_boxplot():
     # Filter out missing values from UBERONBodyPartName
     df = df[df['UBERONBodyPartName'] != 'missing value']
     df = df.dropna(subset=['UBERONBodyPartName'])
+    
+    # save
+    df.to_csv('data/human_body_part_annotation_ratios.tsv', sep='\t', index=False)
+
+
+def create_human_body_part_boxplot():
+
+    # Load the data
+    df = pd.read_csv('data/human_body_part_annotation_ratios.tsv', sep='\t', low_memory=False)
 
     # Get median values for each body part to rank them
     body_part_medians = df.groupby('UBERONBodyPartName')['annotation_ratio'].median().sort_values(ascending=False)
@@ -154,4 +162,5 @@ if __name__ == "__main__":
     import os
     os.chdir(os.path.dirname(__file__))
     
-    create_human_body_part_boxplot()
+    create_human_data()
+    # create_human_body_part_boxplot()

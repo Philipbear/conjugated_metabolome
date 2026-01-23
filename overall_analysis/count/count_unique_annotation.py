@@ -116,33 +116,46 @@ def merge_results():
 def get_dataset_count():
     """Get dataset count for each annotation"""
     
-    all_spec_spec_annotations = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_merged.pkl')    
-    all_spec_delta_annotations = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_merged.pkl')
-    # merge
-    all_annotations = pd.concat([all_spec_spec_annotations, all_spec_delta_annotations], ignore_index=True)
+    all_spec_spec_annotations = pd.read_pickle('overall_analysis/count/data/all_unique_spec_annotation_merged.pkl')
     # group by annotation and count unique datasets
-    df = all_annotations.groupby('annotation')['dataset'].nunique().reset_index()
-    df = df.rename(columns={'dataset': 'dataset_count'})
+    spec_spec_counts = all_spec_spec_annotations.groupby('annotation')['dataset'].nunique().reset_index()
+    spec_spec_counts = spec_spec_counts.rename(columns={'dataset': 'dataset_count'})
     # sort
-    df = df.sort_values(by='dataset_count', ascending=False).reset_index(drop=True)
-    df.to_csv('overall_analysis/count/data/annotation_dataset_count.tsv', sep='\t', index=False)
+    spec_spec_counts = spec_spec_counts.sort_values(by='dataset_count', ascending=False).reset_index(drop=True)
+    spec_spec_counts.to_csv('overall_analysis/count/data/spec_spec_annotation_dataset_count.tsv', sep='\t', index=False)
+    # summarize the value counts of dataset_count
+    value_counts = spec_spec_counts['dataset_count'].value_counts().sort_index()
+    # save as tsv
+    value_counts.to_csv('overall_analysis/count/data/spec_spec_annotation_dataset_count_summary.tsv', sep='\t', header=['count'])
+    
+    all_spec_delta_annotations = pd.read_pickle('overall_analysis/count/data/all_unique_delta_annotation_merged.pkl')
+    # group by annotation and count unique datasets
+    spec_delta_counts = all_spec_delta_annotations.groupby('annotation')['dataset'].nunique().reset_index()
+    spec_delta_counts = spec_delta_counts.rename(columns={'dataset': 'dataset_count'})
+    # sort
+    spec_delta_counts = spec_delta_counts.sort_values(by='dataset_count', ascending=False).reset_index(drop=True)
+    spec_delta_counts.to_csv('overall_analysis/count/data/spec_delta_annotation_dataset_count.tsv', sep='\t', index=False)
+    # summarize the value counts of dataset_count
+    value_counts = spec_delta_counts['dataset_count'].value_counts().sort_index()
+    # save as tsv
+    value_counts.to_csv('overall_analysis/count/data/spec_delta_annotation_dataset_count_summary.tsv', sep='\t', header=['count'])
 
 
 if __name__ == '__main__':
 
-    # Process positive mode data
-    print("Processing positive mode data...")
-    main('analysis/data/pos')
+    # # Process positive mode data
+    # print("Processing positive mode data...")
+    # main('analysis/data/pos')
     
-    print("\nProcessing negative mode data...")
-    main('analysis/data/neg')
+    # print("\nProcessing negative mode data...")
+    # main('analysis/data/neg')
 
-    merge_results()
-    print("\nProcessing complete. Merged results saved.")
+    # merge_results()
+    # print("\nProcessing complete. Merged results saved.")
     
-    """
-    Total unique spec-spec annotations: 217291
-    Total unique spec-delta annotations: 3412720
-    """
+    # """
+    # Total unique spec-spec annotations: 217291
+    # Total unique spec-delta annotations: 3412720
+    # """
     
     get_dataset_count()

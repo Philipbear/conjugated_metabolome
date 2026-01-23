@@ -1,9 +1,10 @@
-def create_body_part_boxplot():
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    import numpy as np
-    from matplotlib.patches import Rectangle
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from matplotlib.patches import Rectangle
+    
 
+def create_mouse_data():
     # Load the data
     df = pd.read_csv('data/redu_with_data.tsv', sep='\t', low_memory=False)
     df = df[df['all'] > 0].reset_index(drop=True)
@@ -11,12 +12,21 @@ def create_body_part_boxplot():
     # Calculate annotation ratio
     df['annotation_ratio'] = df['annotated'] / df['all'] * 100  # Convert to percentage
 
-    # Filter for human samples only
+    # Filter for mouse and rat samples only
     df = df[df['NCBITaxonomy'].isin(['10088|Mus', '10090|Mus musculus', '10105|Mus minutoides', '10114|Rattus', '10116|Rattus norvegicus'])]
 
     # Filter out missing values from UBERONBodyPartName
     df = df[df['UBERONBodyPartName'] != 'missing value']
     df = df.dropna(subset=['UBERONBodyPartName'])
+    
+    # save
+    df.to_csv('data/mouse_body_part_annotation_ratios.tsv', sep='\t', index=False)
+
+
+def create_body_part_boxplot():
+
+    # Load the data
+    df = pd.read_csv('data/mouse_body_part_annotation_ratios.tsv', sep='\t', low_memory=False)
 
     # Get median values for each body part to rank them
     body_part_medians = df.groupby('UBERONBodyPartName')['annotation_ratio'].median().sort_values(ascending=False)
@@ -158,4 +168,5 @@ def create_body_part_boxplot():
 if __name__ == "__main__":
     import os
     os.chdir(os.path.dirname(__file__))
+    create_mouse_data()
     create_body_part_boxplot()
