@@ -12,7 +12,7 @@ def initialize_session_state():
 
 def main():
     # Set the page configuration
-    app_version = "2026-01-22"
+    app_version = "2026-01-26"
     try:
         git_hash = get_git_short_rev()
     except:

@@ -72,6 +72,24 @@ def handle_name_search():
     """Handle name search interface"""
     st.markdown("Search for compounds by name using PubChem:")
     
+    # Demo compound buttons
+    st.markdown("**Try demo compounds:**")
+    demo_col1, demo_col2, _ = st.columns([2, 2, 8])
+    
+    with demo_col1:
+        if st.button("Ferulic Acid", use_container_width=True, key="demo_ferulic_acid"):
+            st.session_state.selected_smiles = "COC1=C(C=CC(=C1)/C=C/C(=O)O)O"
+            st.session_state.selected_compound_name = "Ferulic acid"
+            st.rerun()
+    
+    with demo_col2:
+        if st.button("Phenylacetic Acid", use_container_width=True, key="demo_phenylacetic_acid"):
+            st.session_state.selected_smiles = "C1=CC=C(C=C1)CC(=O)O"
+            st.session_state.selected_compound_name = "Phenylacetic acid"
+            st.rerun()
+    
+    st.markdown("---")
+    
     # Name input
     compound_name = st.text_input(
         "Enter compound name:",
@@ -334,7 +352,7 @@ def display_results_table(df_results):
         annotation_filter = st.selectbox('Annotation type:', ['All matches', 'spec_spec', 'spec_delta'], index=0)
     
     with filter_col3:
-        name_filter = st.selectbox('Conjugate name:', ['All matches', 'With name (annotated)', 'Without name (unannotated)'], index=1)
+        name_filter = st.selectbox('Conjugate name:', ['All matches', 'With name (annotated)', 'Without name (unannotated)'], index=0)
     
     with filter_col4:
         match_filter = st.selectbox('Match type:', 
