@@ -1,4 +1,4 @@
-# Pan-repository conjugated metabolome
+# Navigating the conjugated metabolome
 
 We mined 1.32 billion MS/MS spectra across public metabolomics repositories using reverse spectral searching and delta-mass infererence to map **metabolite conjugations**. We generated structural hypotheses for 24,227,439 spectra, encompassing 217,291 substructure pairs with dual spectral support and 3,412,720 additional candidates with single-match support. These results provide a pan-repository map of potential conjugation chemistry, establish a resource for structural discovery, and offer a framework to further explore the scope and diversity of the conjugated metabolome.
 
@@ -45,7 +45,7 @@ Two implementations of reverse cosine similarity were provided:
 
 
 ## Citation
-> S. Xing et al. Navigating the pan-repository conjugated metabolome. To be preprinted. https://github.com/Philipbear/conjugated_metabolome
+> S. Xing et al. Navigating the conjugated metabolome. To be preprinted. https://github.com/Philipbear/conjugated_metabolome
 
 
 ## License
