@@ -67,7 +67,7 @@ def render_homepage():
     # Citation
     st.header("📄 Citation")
     st.info("""
-    **S. Xing et al.** Navigation of the pan-repository conjugated metabolome. 
+    **S. Xing et al.** Navigation of the conjugated metabolome. 
     https://github.com/Philipbear/conjugated_metabolome
     """)
     
