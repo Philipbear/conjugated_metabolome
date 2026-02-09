@@ -19,7 +19,7 @@ We mined 1.32 billion MS/MS spectra across public metabolomics repositories usin
 </table>
 
 ## Reverse spectral search
-`Reverse spectral search` is a template-based MS/MS similarity framework originally proposed for spectral identification and later extended to improve robustness to chimeric spectra. Here, we repurpose reverse spectral searching for substructure annotation. 
+`Reverse spectral search` is an MS/MS similarity framework originally proposed for spectral identification and later extended to improve robustness to chimeric spectra. Here, we repurpose reverse spectral searching for substructure annotation. 
 Two implementations of reverse cosine similarity were provided:
 - [matchms](https://github.com/matchms/matchms)-based reverse cosine: [revcos.py](https://github.com/Philipbear/conjugated_metabolome/blob/main/bin/revcos_matchms/revcos.py)
 - [Flash](https://github.com/YuanyueLi/FlashEntropySearch) reverse cosine: [flash_cos.py](https://github.com/Philipbear/conjugated_metabolome/blob/main/bin/main/flash_cos.py)

@@ -1,4 +1,23 @@
 """
+This file contains code modified from the FlashEntropySearch project
+(https://github.com/YuanyueLi/FlashEntropySearch)
+Copyright Yuanyue Li 2023
+
+Modified by Shipei Xing in 2024
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
 Flash search for cos / reverse cos
 return matched peaks, spectral usage, reverse score
 """
@@ -942,11 +961,7 @@ def _clean_search_result(temp_result):
     return temp_result
 
 
-# test
 if __name__ == "__main__":
-
-    def cosine_similarity(v1, v2):
-        return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 
     # load spectral library
     spectral_library = [{
@@ -981,8 +996,9 @@ if __name__ == "__main__":
                            clean_spectra=True)
 
     # test
+    def cosine_similarity(v1, v2):
+        return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
     print(cosine_similarity(np.array([100, 5, 20, 0, 0, 20]), np.array([100, 30, 4, 3, 10, 0])))
-
     print('reverse')
     print(cosine_similarity(np.array([100, 5, 20, 20]), np.array([100, 30, 4, 0])))
 
@@ -999,7 +1015,7 @@ if __name__ == "__main__":
     )
 
     # score_arr, matched_peak_arr, spec_usage_arr = search_result['identity_search']
-
     print(search_result)
     
+    # access spec lib metadata
     print(search_eng[0])
