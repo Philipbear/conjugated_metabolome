@@ -24,6 +24,7 @@ Two implementations of reverse cosine similarity were provided:
 - [matchms](https://github.com/matchms/matchms)-based reverse cosine: [revcos.py](https://github.com/Philipbear/conjugated_metabolome/blob/main/bin/revcos_matchms/revcos.py)
 - [Flash](https://github.com/YuanyueLi/FlashEntropySearch) reverse cosine: [flash_cos.py](https://github.com/Philipbear/conjugated_metabolome/blob/main/bin/main/flash_cos.py)
 
+In both implementations, both the similarity score and the number of matched peaks will be output. Codes were tested using Python 3.10 on macOS (14.6, M2 Max) and Linux (Ubuntu 20.04). Packages of `numpy` and `numba` are required. For the `matchms`-based implementation, each spectral comparison takes several milliseconds.
 
 ## Data availability
 - Conjugate search results of 149.9 million clustered MS/MS: [Zenodo link](https://zenodo.org/records/17245769)

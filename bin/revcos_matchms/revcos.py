@@ -231,9 +231,9 @@ if __name__ == "__main__":
     # qry spec, ref spec    
     ########
     # Example usage with USIs
-    spec1 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581992") # cholyl-levodopa
-    spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581904") # cholic acid
-    # spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006439802") # levodopa
+    spec1 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00015506089") # cholyl-phe
+    # spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581904") # cholic acid
+    spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00003138973") # phe
     
     peaks1 = np.array(spec1['peaks'], dtype=np.float32)
     peaks2 = np.array(spec2['peaks'], dtype=np.float32)
