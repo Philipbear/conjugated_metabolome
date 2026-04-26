@@ -38,6 +38,8 @@ In both implementations, both the similarity score and the number of matched pea
   - [MSV000098638](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000098638) (Microbial cultures)
   - [MSV000099690](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000099690) (Chemical synthesis & RT matching)
   - [MSV000096359](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000096359) (Human urine cohort for drug conjugates)
+  - [MSV000097935](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000097935) (Human serum samples for drug conjugates)
+  - [MSV000099690](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000099690) (Retention time matching)
 - MS/MS reference libraries
   - GNPS ([ALL_GNPS_NO_PROPOGATED.msp](https://external.gnps2.org/gnpslibrary), downloaded on Nov 11, 2024)
   - MassBank ([MassBank_NIST.msp](https://github.com/MassBank/MassBank-data/releases/tag/2024.06), 2024.06 release)
