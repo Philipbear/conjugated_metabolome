@@ -48,7 +48,7 @@ In both implementations, both the similarity score and the number of matched pea
 
 
 ## Citation
-> Xing, S. et al. Navigating the conjugated metabolome. Preprint at https://doi.org/10.64898/2026.02.06.704496 (2026).
+> Shipei Xing et al. Navigating the conjugated metabolome. Preprint at https://doi.org/10.64898/2026.02.06.704496 (2026).
 
 
 ## License
