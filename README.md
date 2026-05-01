@@ -38,8 +38,8 @@ Reverse cosine matching identifies substructure-level relationships between a qu
 
 ## Data availability
 - Conjugate search results of 149.9 million clustered MS/MS: [Zenodo link](https://zenodo.org/records/17245769)
-- GNPS conjugated metabolome libraries: [GNPS external library link](https://external.gnps2.org/gnpslibrary)
-- Web app to explore conjugated metabolome results: [Web app link](https://conjugated-metabolome.streamlit.app)
+- GNPS conjugated metabolome libraries: [Zenodo link](https://zenodo.org/records/19837386)
+- Web app to explore conjugated metabolome results: [Web app link](https://conjugated-metabolome.gnps2.org)
 - Datasets
   - [MSV000086131](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000086131) (Mammalian feces)
   - [MSV000082261](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000082261) (Diabetes study)
@@ -57,7 +57,7 @@ Reverse cosine matching identifies substructure-level relationships between a qu
 
 
 ## Citation
-> Shipei Xing et al. Navigating the conjugated metabolome. Preprint at https://doi.org/10.64898/2026.02.06.704496 (2026).
+> Shipei Xing, Abubaker Patan, Julius Agongo, Harsha Gouda, Vincent Charron-Lamoureux, Yasin El Abiead, Zhewen Hu, Haoqi Nina Zhao, Ipsita Mohanty, Jasmine Zemlin, Wilhan Donizete Gonçalves Nunes, Lindsey A Burnett, Mingxun Wang, Dionicio Siegel, Pieter C Dorrestein. **Navigating the conjugated metabolome.** Preprint at https://doi.org/10.64898/2026.02.06.704496 (2026).
 
 
 ## License

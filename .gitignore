@@ -188,7 +188,6 @@ _*
 .vscode/
 analysis/
 /bin/main/others/
-/bin/revcos_matchms/
 play/
 fig/
 identification/
