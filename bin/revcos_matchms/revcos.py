@@ -107,7 +107,7 @@ def score_matches(matches_idx1: np.ndarray, matches_idx2: np.ndarray,
             used_matches += 1
 
     if used_matches == 0:
-        return 0.0, 0
+        return 0.0, 0, 0.0
 
     # Calculate normalization factors
     if sqrt_transform:
@@ -128,17 +128,24 @@ def score_matches(matches_idx1: np.ndarray, matches_idx2: np.ndarray,
         else:
             new_qry_intensities[i] = qry_spec[i, 1] * (1 - penalty)
 
+    # Spectral usage: sum of matched qry peak intensities (sum-normalized, pre-sqrt), in [0, 1]
+    qry_intensity_sum = np.sum(qry_spec[:, 1])
+    if qry_intensity_sum > 0.0:
+        spectral_usage = float(np.sum(matched_intensities) / qry_intensity_sum)
+    else:
+        spectral_usage = 0.0
+
     if sqrt_transform:
         norm2 = np.sqrt(np.sum(np.sqrt(new_qry_intensities * new_qry_intensities)))
     else:
         norm2 = np.sqrt(np.sum(new_qry_intensities * new_qry_intensities))
 
     if norm1 == 0.0 or norm2 == 0.0:
-        return 0.0, used_matches
+        return 0.0, used_matches, spectral_usage
 
     score = total_score / (norm1 * norm2)
 
-    return min(float(score), 1.0), used_matches
+    return min(float(score), 1.0), used_matches, spectral_usage
 
 
 def cosine_similarity(qry_spec: np.ndarray, ref_spec: np.ndarray,
@@ -172,7 +179,7 @@ def cosine_similarity(qry_spec: np.ndarray, ref_spec: np.ndarray,
     shift = np.float32(shift)
 
     if qry_spec.size == 0 or ref_spec.size == 0:
-        return 0.0, 0
+        return 0.0, 0, 0.0
 
     # normalize the intensity
     ref_spec[:, 1] /= np.max(ref_spec[:, 1])
@@ -184,7 +191,7 @@ def cosine_similarity(qry_spec: np.ndarray, ref_spec: np.ndarray,
     )
 
     if len(matches_idx1) == 0:
-        return 0.0, 0
+        return 0.0, 0, 0.0
 
     return score_matches(
         matches_idx1, matches_idx2, scores,
@@ -231,26 +238,22 @@ if __name__ == "__main__":
     # qry spec, ref spec    
     ########
     # Example usage with USIs
-    spec1 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00015506089") # cholyl-phe
-    # spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581904") # cholic acid
-    spec2 = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00003138973") # phe
+    qry_spec = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00015506089") # cholyl-phe
+    # ref_spec = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00006581904") # cholic acid
+    ref_spec = load_from_usi("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00003138973") # phe
     
-    peaks1 = np.array(spec1['peaks'], dtype=np.float32)
-    peaks2 = np.array(spec2['peaks'], dtype=np.float32)
-    prec_mz_shift = spec1['prec_mz'] - spec2['prec_mz']
+    qry_peaks = np.array(qry_spec['peaks'], dtype=np.float32)
+    ref_peaks = np.array(ref_spec['peaks'], dtype=np.float32)
+    prec_mz_shift = qry_spec['prec_mz'] - ref_spec['prec_mz']
 
     # Example with standard cosine
-    score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=0, shift=0)
-    print(f"Standard Score: {score:.3f}, Matches: {n_matches}")
-    
-    # Example with modified cosine    
-    score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=0, shift=prec_mz_shift)
-    print(f"Modified Score: {score:.3f}, Matches: {n_matches}")
+    score, n_matches, usage = cosine_similarity(qry_peaks, ref_peaks, tolerance=0.05, sqrt_transform=True, penalty=0, shift=0)
+    print(f"Standard Score: {score:.4f}, Matches: {n_matches}, Usage: {usage:.4f}")
+
+    # Example with modified cosine
+    score, n_matches, usage = cosine_similarity(qry_peaks, ref_peaks, tolerance=0.05, sqrt_transform=True, penalty=0, shift=prec_mz_shift)
+    print(f"Modified Score: {score:.4f}, Matches: {n_matches}, Usage: {usage:.4f}")
 
     # Example with reverse cosine
-    score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=1, shift=0)
-    print(f"Reverse Score: {score:.3f}, Matches: {n_matches}")
-
-    # Example with modified reverse cosine
-    score, n_matches = cosine_similarity(peaks1, peaks2, tolerance=0.05, sqrt_transform=True, penalty=1, shift=prec_mz_shift)
-    print(f"Modified Reverse Score: {score:.3f}, Matches: {n_matches}")
+    score, n_matches, usage = cosine_similarity(qry_peaks, ref_peaks, tolerance=0.05, sqrt_transform=True, penalty=1, shift=0)
+    print(f"Reverse Score: {score:.4f}, Matches: {n_matches}, Usage: {usage:.4f}")
