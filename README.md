@@ -18,6 +18,11 @@ We mined 1.32 billion MS/MS spectra across public metabolomics repositories usin
 </tr>
 </table>
 
+## Resources
+- Conjugate search results of 149.9 million clustered MS/MS: [Zenodo link](https://zenodo.org/records/17245769)
+- GNPS conjugated metabolome libraries: [Zenodo link](https://zenodo.org/records/19837386)
+- Web app to explore conjugated metabolome results: [Web app link](https://conjugated-metabolome.gnps2.org)
+
 ## Reverse spectral search
 `Reverse spectral search` is an MS/MS similarity framework originally proposed for spectral identification and later extended to improve robustness to chimeric spectra. Here, we repurpose reverse spectral searching for substructure annotation. 
 Two implementations of reverse cosine similarity were provided:
@@ -37,9 +42,6 @@ Reverse cosine matching identifies substructure-level relationships between a qu
 
 
 ## Data availability
-- Conjugate search results of 149.9 million clustered MS/MS: [Zenodo link](https://zenodo.org/records/17245769)
-- GNPS conjugated metabolome libraries: [Zenodo link](https://zenodo.org/records/19837386)
-- Web app to explore conjugated metabolome results: [Web app link](https://conjugated-metabolome.gnps2.org)
 - Datasets
   - [MSV000086131](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000086131) (Mammalian feces)
   - [MSV000082261](https://massive.ucsd.edu/ProteoSAFe/QueryMSV?id=MSV000082261) (Diabetes study)
